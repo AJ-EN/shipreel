@@ -77,24 +77,28 @@ export default function Preview({ player }: { player: Player }) {
 
   return (
     <div className="flex flex-col gap-3 min-h-0 h-full">
-      <div className="flex-1 min-h-0 grid place-items-center">
-        <div
-          style={{ aspectRatio: '16 / 9' }}
-          className={`relative w-full max-h-full rounded-[10px] transition-shadow duration-500 ${
-            spotOn ? 'ring-2 ring-reel-400/70 shadow-[0_0_0_6px_rgba(75,163,255,0.10)]' : 'ring-1 ring-ink-700'
-          }`}
-        >
-          <div ref={host} className="absolute inset-0 bg-ink-900 rounded-[10px] overflow-hidden" />
-          {spotOn && spotAt !== null && (
-            <div className="absolute left-2.5 top-2.5 flex items-center gap-2 px-2.5 h-7 rounded-lg bg-ink-950/85 ring-1 ring-reel-400/40 backdrop-blur-sm pointer-events-none">
-              <span className="w-1.5 h-1.5 rounded-full bg-reel-400 pulse-dot" />
-              <span className="text-[11.5px] text-mist-200">
-                Agent is previewing <span className="font-mono tabular-nums">{spotAt.toFixed(1)}s</span>
-                {spotNote && <span className="text-mist-400"> — {spotNote}</span>}
-              </span>
-            </div>
-          )}
-        </div>
+      {/*
+        The viewer fills whatever space it is given and the canvas letterboxes
+        inside it with object-contain. An aspect-ratio box here looked tidier
+        but could not be trusted: inside a grid whose row is content-sized,
+        `max-height: 100%` resolves against the row rather than the container,
+        so the frame grew past its slot and painted over the timeline.
+      */}
+      <div
+        className={`flex-1 min-h-0 relative rounded-[10px] transition-shadow duration-500 ${
+          spotOn ? 'ring-2 ring-reel-400/70 shadow-[0_0_0_6px_rgba(75,163,255,0.10)]' : 'ring-1 ring-ink-700'
+        }`}
+      >
+        <div ref={host} className="absolute inset-0 bg-ink-900 rounded-[10px] overflow-hidden" />
+        {spotOn && spotAt !== null && (
+          <div className="absolute left-2.5 top-2.5 flex items-center gap-2 px-2.5 h-7 rounded-lg bg-ink-950/85 ring-1 ring-reel-400/40 backdrop-blur-sm pointer-events-none">
+            <span className="w-1.5 h-1.5 rounded-full bg-reel-400 pulse-dot" />
+            <span className="text-[11.5px] text-mist-200">
+              Agent is previewing <span className="font-mono tabular-nums">{spotAt.toFixed(1)}s</span>
+              {spotNote && <span className="text-mist-400"> — {spotNote}</span>}
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-3 shrink-0">

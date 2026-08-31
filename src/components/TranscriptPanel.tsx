@@ -23,7 +23,7 @@ export default function TranscriptPanel({ player }: { player: Player }) {
   const kept = rows.filter((r) => r.at).length
 
   return (
-    <aside className="flex flex-col min-h-0 bg-ink-900 rounded-xl ring-1 ring-ink-700">
+    <aside className="flex flex-col h-full min-h-0 bg-ink-900 rounded-xl ring-1 ring-ink-700">
       <div className="flex items-baseline justify-between px-3.5 py-3 border-b border-ink-800">
         <h2 className="text-[11px] uppercase tracking-[0.14em] text-mist-400 font-semibold">Voiceover</h2>
         <span className="text-[11px] font-mono text-mist-400 tabular-nums">{kept}/{rows.length} kept</span>

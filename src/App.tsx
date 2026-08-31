@@ -136,15 +136,15 @@ export default function App() {
       )}
 
       {phase.kind === 'ready' && player && (
-        <main className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-4 p-4">
+        <main className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] auto-rows-max lg:auto-rows-fr gap-4 p-4 overflow-y-auto lg:overflow-hidden">
           <div className="flex flex-col gap-4 min-h-0">
-            <div className="flex-1 min-h-0"><Preview player={player} /></div>
+            <div className="h-[300px] lg:h-auto lg:flex-1 lg:min-h-0"><Preview player={player} /></div>
             <div className="shrink-0"><Timeline player={player} /></div>
           </div>
           <div className="flex flex-col gap-4 min-h-0">
             <div className="shrink-0"><TargetPanel /></div>
-            <div className="flex-1 min-h-0"><ActivityPanel /></div>
-            <div className="flex-1 min-h-0"><TranscriptPanel player={player} /></div>
+            <div className="h-[340px] lg:h-auto lg:flex-1 lg:min-h-0"><ActivityPanel /></div>
+            <div className="h-[340px] lg:h-auto lg:flex-1 lg:min-h-0"><TranscriptPanel player={player} /></div>
           </div>
         </main>
       )}

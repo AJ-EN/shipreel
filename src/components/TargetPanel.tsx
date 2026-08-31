@@ -13,14 +13,19 @@ import { optimizeToTarget, type OptimizeReport } from '../engine/optimize'
  * get_project_state.
  */
 export default function TargetPanel() {
-  const [target, setTarget] = useState(60)
+  // Held as text so the field can be empty mid-edit. Clamping on every
+  // keystroke meant backspacing 60 to type 90 snapped the box to 1.
+  const [raw, setRaw] = useState('60')
   const [busy, setBusy] = useState(false)
   const [report, setReport] = useState<OptimizeReport | null>(null)
   const duration = useProject((s) => s.duration())
   const exporting = useExport((s) => s.phase) === 'rendering'
 
+  const target = Number(raw)
+  const valid = raw.trim() !== '' && Number.isFinite(target) && target > 0
+
   const run = async () => {
-    if (busy || !(target > 0)) return
+    if (busy || !valid) return
     setBusy(true)
     setReport(null)
     useProject.getState().note('user', `set a ${target}s target and ran Optimize`)
@@ -32,7 +37,7 @@ export default function TargetPanel() {
   }
 
   const over = duration - target
-  const fits = duration <= target
+  const fits = valid && duration <= target
 
   return (
     <section className="bg-ink-900 rounded-xl ring-1 ring-ink-700 px-3.5 py-3">
@@ -43,8 +48,9 @@ export default function TargetPanel() {
           <span className="block text-[11px] text-mist-400 mb-1">Target duration</span>
           <div className="flex items-center gap-1.5 h-9 px-2.5 rounded-lg bg-ink-950 ring-1 ring-ink-600 focus-within:ring-reel-400/60 transition-shadow">
             <input
-              type="number" min={5} max={3600} step={5} value={target}
-              onChange={(e) => setTarget(Math.max(1, +e.target.value || 0))}
+              type="number" min={1} max={3600} step={5} value={raw}
+              onChange={(e) => setRaw(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') void run() }}
               disabled={busy || exporting}
               className="w-full bg-transparent outline-none font-mono text-[13px] text-mist-200 tabular-nums disabled:opacity-50"
               aria-label="Target duration in seconds"
@@ -55,7 +61,7 @@ export default function TargetPanel() {
 
         <button
           onClick={run}
-          disabled={busy || exporting || duration === 0}
+          disabled={busy || exporting || duration === 0 || !valid}
           className="h-9 px-4 shrink-0 rounded-lg text-[13px] font-medium bg-reel-500 hover:bg-reel-400 disabled:opacity-40 disabled:hover:bg-reel-500 text-white transition-colors"
         >
           {busy ? 'Optimizing…' : 'Optimize'}
@@ -63,12 +69,12 @@ export default function TargetPanel() {
       </div>
 
       <div className="mt-2.5 flex items-center gap-2 text-[11.5px] font-mono tabular-nums">
-        <span className="text-mist-400">Target ≤ {target.toFixed(1)}s</span>
+        <span className="text-mist-400">Target ≤ {valid ? `${target.toFixed(1)}s` : '—'}</span>
         <span className="text-ink-600">·</span>
         <span className={fits ? 'text-signal-400' : 'text-warn-400'}>
           {report ? 'Final' : 'Now'} {duration.toFixed(1)}s
         </span>
-        {!fits && <span className="text-mist-400/70">({over.toFixed(1)}s over)</span>}
+        {valid && !fits && <span className="text-mist-400/70">({over.toFixed(1)}s over)</span>}
         {fits && report && <span className="text-signal-400">✓</span>}
       </div>
 

@@ -81,7 +81,7 @@ export default function ActivityPanel() {
   const toolCalls = entries.filter((e) => e.kind === 'tool').length
 
   return (
-    <section className="flex flex-col min-h-0 bg-ink-900 rounded-xl ring-1 ring-ink-700">
+    <section className="flex flex-col h-full min-h-0 bg-ink-900 rounded-xl ring-1 ring-ink-700">
       <div className="flex items-center justify-between px-3.5 py-3 border-b border-ink-800 shrink-0">
         <h2 className="text-[11px] uppercase tracking-[0.14em] text-mist-400 font-semibold">Agent activity</h2>
         <div className="flex items-center gap-2">
