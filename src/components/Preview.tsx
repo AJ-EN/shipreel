@@ -19,12 +19,14 @@ export default function Preview({ player }: { player: Player }) {
 
   useEffect(() => {
     const el = player.canvas
-    el.style.maxWidth = '100%'
-    el.style.maxHeight = '100%'
-    el.style.width = 'auto'
-    el.style.height = 'auto'
+    // Absolute + object-contain letterboxes reliably; percentage max-height on
+    // a grid child does not bind the way you would hope.
+    el.style.position = 'absolute'
+    el.style.inset = '0'
+    el.style.width = '100%'
+    el.style.height = '100%'
+    el.style.objectFit = 'contain'
     el.style.display = 'block'
-    el.style.borderRadius = '10px'
     host.current?.appendChild(el)
     return () => { el.remove() }
   }, [player])
@@ -61,7 +63,13 @@ export default function Preview({ player }: { player: Player }) {
 
   return (
     <div className="flex flex-col gap-3 min-h-0 h-full">
-      <div ref={host} className="flex-1 min-h-0 grid place-items-center bg-ink-900 rounded-[10px] overflow-hidden ring-1 ring-ink-700" />
+      <div className="flex-1 min-h-0 grid place-items-center">
+        <div
+          ref={host}
+          style={{ aspectRatio: '16 / 9' }}
+          className="relative w-full max-h-full bg-ink-900 rounded-[10px] overflow-hidden ring-1 ring-ink-700"
+        />
+      </div>
 
       <div className="flex items-center gap-3">
         <button

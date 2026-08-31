@@ -20,6 +20,8 @@ import type { Clip, MediaAsset } from '../types'
 const OUTPUT_BUDGET = 1500
 const cap = (s: string) => (s.length <= OUTPUT_BUDGET ? s : `${s.slice(0, OUTPUT_BUDGET - 20)}\n… (truncated)`)
 const t = (n: number) => `${n.toFixed(1)}s`
+/** Timestamps get two decimals: agents pass these straight back as cut points. */
+const ts = (n: number) => `${n.toFixed(2)}s`
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim()
 
@@ -116,19 +118,29 @@ export function buildToolset(player: Player) {
       if (!tokens.length) return 'Provide at least one word to search for.'
 
       const flat = s.transcript.segments.flatMap((seg) =>
-        seg.words.map((w) => ({ ...w, seg })),
+        seg.words.map((w, idx) => ({ ...w, seg, idx, count: seg.words.length })),
       )
       const hits: string[] = []
       for (let i = 0; i + tokens.length <= flat.length; i++) {
         const run = flat.slice(i, i + tokens.length)
         if (!run.every((w, k) => norm(w.word) === tokens[k])) continue
-        const tl = sourceRangeToTimeline(s.clips, flatMediaId(s), {
-          start: run[0].start,
-          end: run[run.length - 1].end,
-        })
-        if (!tl) continue // that audio has already been cut from the timeline
+
+        // When the match spans an entire phrase, return the phrase's own
+        // bounds. Word timings sit just inside them, and cutting to the word
+        // would leave a sliver of audio behind.
+        const head = run[0]
+        const tail = run[run.length - 1]
+        const wholePhrase = head.seg === tail.seg && head.idx === 0 && tail.idx === tail.count - 1
+        const src = wholePhrase
+          ? { start: head.seg.start, end: head.seg.end }
+          : { start: head.start, end: tail.end }
+
+        const tl = sourceRangeToTimeline(s.clips, flatMediaId(s), src)
+        // Skip anything already cut, and anything reduced to a sliver: handing
+        // back a zero-width range would only invite a no-op cut.
+        if (!tl || tl.end - tl.start < 0.05) continue
         hits.push(
-          `${t(tl.start)}-${t(tl.end)}${run[0].seg.filler ? ' [filler]' : ''} — "${run[0].seg.text.slice(0, 90)}"`,
+          `${ts(tl.start)}-${ts(tl.end)}${head.seg.filler ? ' [filler]' : ''} — "${head.seg.text.slice(0, 90)}"`,
         )
         if (hits.length >= 8) break
       }
@@ -167,7 +179,7 @@ export function buildToolset(player: Player) {
         return `No gaps of ${floor}s or longer remain in the voiceover. Lower min_seconds to find shorter pauses.`
       }
       const total = mapped.reduce((m, r) => m + (r.end - r.start), 0)
-      const listed = mapped.slice(0, 14).map((r) => `${t(r.start)}-${t(r.end)}`).join(', ')
+      const listed = mapped.slice(0, 14).map((r) => `${ts(r.start)}-${ts(r.end)}`).join(', ')
       return cap(
         `${mapped.length} silence(s) of ${floor}s+, ${t(total)} in total:\n${listed}` +
         (mapped.length > 14 ? `\n… +${mapped.length - 14} more (pass them all by calling remove_ranges with this list)` : ''),
@@ -203,14 +215,22 @@ export function buildToolset(player: Player) {
       if (!Array.isArray(ranges) || !ranges.length) {
         return 'Provide at least one range. Call find_silences or search_transcript to get ranges worth cutting.'
       }
-      const bad = ranges.find((r) => typeof r?.start !== 'number' || typeof r?.end !== 'number' || r.end <= r.start)
-      if (bad) return `Range {start:${bad.start}, end:${bad.end}} is not valid — end must be greater than start.`
+      // One unusable range should not throw away a batch of good ones — drop it
+      // and say so, so a long list of cuts still lands.
+      const usable = ranges.filter(
+        (r) => typeof r?.start === 'number' && typeof r?.end === 'number' && r.end - r.start > 0.02,
+      )
+      const skipped = ranges.length - usable.length
+      if (!usable.length) {
+        return `None of those ${ranges.length} range(s) were usable — each needs a numeric start and an end at least 0.02s later. Call find_silences for ranges that can be cut.`
+      }
 
       const before = useProject.getState().duration()
-      const removed = useProject.getState().removeRanges(ranges, 'agent')
+      const removed = useProject.getState().removeRanges(usable, 'agent')
       const after = useProject.getState().duration()
       if (!removed) return 'Those ranges did not overlap anything on the timeline. Nothing was cut.'
-      return `Cut ${t(removed)} across ${ranges.length} range(s). Runtime ${t(before)} → ${t(after)}.`
+      const note = skipped ? ` Skipped ${skipped} empty range(s).` : ''
+      return `Cut ${t(removed)} across ${usable.length} range(s).${note} Runtime ${t(before)} → ${t(after)}.`
     },
   }, base)
 
