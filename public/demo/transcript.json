@@ -1,0 +1,1488 @@
+{
+  "duration": 108.67092900000002,
+  "segments": [
+    {
+      "id": "seg0",
+      "text": "Hey, so this is the thing we built this weekend.",
+      "start": 0.4,
+      "end": 3.097,
+      "filler": false,
+      "words": [
+        {
+          "word": "Hey,",
+          "start": 0.4,
+          "end": 0.675
+        },
+        {
+          "word": "so",
+          "start": 0.675,
+          "end": 0.84
+        },
+        {
+          "word": "this",
+          "start": 0.84,
+          "end": 1.115
+        },
+        {
+          "word": "is",
+          "start": 1.115,
+          "end": 1.281
+        },
+        {
+          "word": "the",
+          "start": 1.281,
+          "end": 1.501
+        },
+        {
+          "word": "thing",
+          "start": 1.501,
+          "end": 1.831
+        },
+        {
+          "word": "we",
+          "start": 1.831,
+          "end": 1.996
+        },
+        {
+          "word": "built",
+          "start": 1.996,
+          "end": 2.326
+        },
+        {
+          "word": "this",
+          "start": 2.326,
+          "end": 2.601
+        },
+        {
+          "word": "weekend.",
+          "start": 2.601,
+          "end": 3.097
+        }
+      ]
+    },
+    {
+      "id": "seg1",
+      "text": "um",
+      "start": 3.697,
+      "end": 4.03,
+      "filler": true,
+      "words": [
+        {
+          "word": "um",
+          "start": 3.697,
+          "end": 4.03
+        }
+      ]
+    },
+    {
+      "id": "seg2",
+      "text": "The problem is that spinning up a local dev database takes forever, and everyone on the team ends up doing it slightly differently.",
+      "start": 4.43,
+      "end": 11.222,
+      "filler": false,
+      "words": [
+        {
+          "word": "The",
+          "start": 4.43,
+          "end": 4.636
+        },
+        {
+          "word": "problem",
+          "start": 4.636,
+          "end": 5.047
+        },
+        {
+          "word": "is",
+          "start": 5.047,
+          "end": 5.202
+        },
+        {
+          "word": "that",
+          "start": 5.202,
+          "end": 5.459
+        },
+        {
+          "word": "spinning",
+          "start": 5.459,
+          "end": 5.922
+        },
+        {
+          "word": "up",
+          "start": 5.922,
+          "end": 6.076
+        },
+        {
+          "word": "a",
+          "start": 6.076,
+          "end": 6.179
+        },
+        {
+          "word": "local",
+          "start": 6.179,
+          "end": 6.488
+        },
+        {
+          "word": "dev",
+          "start": 6.488,
+          "end": 6.694
+        },
+        {
+          "word": "database",
+          "start": 6.694,
+          "end": 7.157
+        },
+        {
+          "word": "takes",
+          "start": 7.157,
+          "end": 7.466
+        },
+        {
+          "word": "forever,",
+          "start": 7.466,
+          "end": 7.929
+        },
+        {
+          "word": "and",
+          "start": 7.929,
+          "end": 8.135
+        },
+        {
+          "word": "everyone",
+          "start": 8.135,
+          "end": 8.598
+        },
+        {
+          "word": "on",
+          "start": 8.598,
+          "end": 8.752
+        },
+        {
+          "word": "the",
+          "start": 8.752,
+          "end": 8.958
+        },
+        {
+          "word": "team",
+          "start": 8.958,
+          "end": 9.215
+        },
+        {
+          "word": "ends",
+          "start": 9.215,
+          "end": 9.472
+        },
+        {
+          "word": "up",
+          "start": 9.472,
+          "end": 9.627
+        },
+        {
+          "word": "doing",
+          "start": 9.627,
+          "end": 9.936
+        },
+        {
+          "word": "it",
+          "start": 9.936,
+          "end": 10.09
+        },
+        {
+          "word": "slightly",
+          "start": 10.09,
+          "end": 10.553
+        },
+        {
+          "word": "differently.",
+          "start": 10.553,
+          "end": 11.222
+        }
+      ]
+    },
+    {
+      "id": "seg3",
+      "text": "So you get these bugs that only reproduce on one person machine, and nobody can figure out why.",
+      "start": 14.622,
+      "end": 20.267,
+      "filler": false,
+      "words": [
+        {
+          "word": "So",
+          "start": 14.622,
+          "end": 14.798
+        },
+        {
+          "word": "you",
+          "start": 14.798,
+          "end": 15.034
+        },
+        {
+          "word": "get",
+          "start": 15.034,
+          "end": 15.269
+        },
+        {
+          "word": "these",
+          "start": 15.269,
+          "end": 15.622
+        },
+        {
+          "word": "bugs",
+          "start": 15.622,
+          "end": 15.916
+        },
+        {
+          "word": "that",
+          "start": 15.916,
+          "end": 16.21
+        },
+        {
+          "word": "only",
+          "start": 16.21,
+          "end": 16.504
+        },
+        {
+          "word": "reproduce",
+          "start": 16.504,
+          "end": 17.092
+        },
+        {
+          "word": "on",
+          "start": 17.092,
+          "end": 17.268
+        },
+        {
+          "word": "one",
+          "start": 17.268,
+          "end": 17.503
+        },
+        {
+          "word": "person",
+          "start": 17.503,
+          "end": 17.915
+        },
+        {
+          "word": "machine,",
+          "start": 17.915,
+          "end": 18.444
+        },
+        {
+          "word": "and",
+          "start": 18.444,
+          "end": 18.68
+        },
+        {
+          "word": "nobody",
+          "start": 18.68,
+          "end": 19.091
+        },
+        {
+          "word": "can",
+          "start": 19.091,
+          "end": 19.326
+        },
+        {
+          "word": "figure",
+          "start": 19.326,
+          "end": 19.738
+        },
+        {
+          "word": "out",
+          "start": 19.738,
+          "end": 19.973
+        },
+        {
+          "word": "why.",
+          "start": 19.973,
+          "end": 20.267
+        }
+      ]
+    },
+    {
+      "id": "seg4",
+      "text": "uh",
+      "start": 21.367,
+      "end": 21.721,
+      "filler": true,
+      "words": [
+        {
+          "word": "uh",
+          "start": 21.367,
+          "end": 21.721
+        }
+      ]
+    },
+    {
+      "id": "seg5",
+      "text": "We wasted about two days on exactly that last month, which is what pushed us to build this.",
+      "start": 22.221,
+      "end": 27.239,
+      "filler": false,
+      "words": [
+        {
+          "word": "We",
+          "start": 22.221,
+          "end": 22.385
+        },
+        {
+          "word": "wasted",
+          "start": 22.385,
+          "end": 22.767
+        },
+        {
+          "word": "about",
+          "start": 22.767,
+          "end": 23.094
+        },
+        {
+          "word": "two",
+          "start": 23.094,
+          "end": 23.312
+        },
+        {
+          "word": "days",
+          "start": 23.312,
+          "end": 23.585
+        },
+        {
+          "word": "on",
+          "start": 23.585,
+          "end": 23.748
+        },
+        {
+          "word": "exactly",
+          "start": 23.748,
+          "end": 24.185
+        },
+        {
+          "word": "that",
+          "start": 24.185,
+          "end": 24.457
+        },
+        {
+          "word": "last",
+          "start": 24.457,
+          "end": 24.73
+        },
+        {
+          "word": "month,",
+          "start": 24.73,
+          "end": 25.112
+        },
+        {
+          "word": "which",
+          "start": 25.112,
+          "end": 25.439
+        },
+        {
+          "word": "is",
+          "start": 25.439,
+          "end": 25.603
+        },
+        {
+          "word": "what",
+          "start": 25.603,
+          "end": 25.875
+        },
+        {
+          "word": "pushed",
+          "start": 25.875,
+          "end": 26.257
+        },
+        {
+          "word": "us",
+          "start": 26.257,
+          "end": 26.421
+        },
+        {
+          "word": "to",
+          "start": 26.421,
+          "end": 26.584
+        },
+        {
+          "word": "build",
+          "start": 26.584,
+          "end": 26.912
+        },
+        {
+          "word": "this.",
+          "start": 26.912,
+          "end": 27.239
+        }
+      ]
+    },
+    {
+      "id": "seg6",
+      "text": "So we built Tidepool.",
+      "start": 30.039,
+      "end": 31.365,
+      "filler": false,
+      "words": [
+        {
+          "word": "So",
+          "start": 30.039,
+          "end": 30.22
+        },
+        {
+          "word": "we",
+          "start": 30.22,
+          "end": 30.401
+        },
+        {
+          "word": "built",
+          "start": 30.401,
+          "end": 30.762
+        },
+        {
+          "word": "Tidepool.",
+          "start": 30.762,
+          "end": 31.365
+        }
+      ]
+    },
+    {
+      "id": "seg7",
+      "text": "It is one config file, and one command.",
+      "start": 31.865,
+      "end": 34.451,
+      "filler": false,
+      "words": [
+        {
+          "word": "It",
+          "start": 31.865,
+          "end": 32.059
+        },
+        {
+          "word": "is",
+          "start": 32.059,
+          "end": 32.253
+        },
+        {
+          "word": "one",
+          "start": 32.253,
+          "end": 32.512
+        },
+        {
+          "word": "config",
+          "start": 32.512,
+          "end": 32.964
+        },
+        {
+          "word": "file,",
+          "start": 32.964,
+          "end": 33.352
+        },
+        {
+          "word": "and",
+          "start": 33.352,
+          "end": 33.611
+        },
+        {
+          "word": "one",
+          "start": 33.611,
+          "end": 33.869
+        },
+        {
+          "word": "command.",
+          "start": 33.869,
+          "end": 34.451
+        }
+      ]
+    },
+    {
+      "id": "seg8",
+      "text": "um",
+      "start": 35.851,
+      "end": 36.184,
+      "filler": true,
+      "words": [
+        {
+          "word": "um",
+          "start": 35.851,
+          "end": 36.184
+        }
+      ]
+    },
+    {
+      "id": "seg9",
+      "text": "Here is the terminal. You just run tidepool up, and it provisions the whole stack from that config file.",
+      "start": 36.534,
+      "end": 42.428,
+      "filler": false,
+      "words": [
+        {
+          "word": "Here",
+          "start": 36.534,
+          "end": 36.815
+        },
+        {
+          "word": "is",
+          "start": 36.815,
+          "end": 36.983
+        },
+        {
+          "word": "the",
+          "start": 36.983,
+          "end": 37.208
+        },
+        {
+          "word": "terminal.",
+          "start": 37.208,
+          "end": 37.769
+        },
+        {
+          "word": "You",
+          "start": 37.769,
+          "end": 37.994
+        },
+        {
+          "word": "just",
+          "start": 37.994,
+          "end": 38.274
+        },
+        {
+          "word": "run",
+          "start": 38.274,
+          "end": 38.499
+        },
+        {
+          "word": "tidepool",
+          "start": 38.499,
+          "end": 39.004
+        },
+        {
+          "word": "up,",
+          "start": 39.004,
+          "end": 39.229
+        },
+        {
+          "word": "and",
+          "start": 39.229,
+          "end": 39.453
+        },
+        {
+          "word": "it",
+          "start": 39.453,
+          "end": 39.621
+        },
+        {
+          "word": "provisions",
+          "start": 39.621,
+          "end": 40.239
+        },
+        {
+          "word": "the",
+          "start": 40.239,
+          "end": 40.463
+        },
+        {
+          "word": "whole",
+          "start": 40.463,
+          "end": 40.8
+        },
+        {
+          "word": "stack",
+          "start": 40.8,
+          "end": 41.137
+        },
+        {
+          "word": "from",
+          "start": 41.137,
+          "end": 41.418
+        },
+        {
+          "word": "that",
+          "start": 41.418,
+          "end": 41.698
+        },
+        {
+          "word": "config",
+          "start": 41.698,
+          "end": 42.091
+        },
+        {
+          "word": "file.",
+          "start": 42.091,
+          "end": 42.428
+        }
+      ]
+    },
+    {
+      "id": "seg10",
+      "text": "Postgres, all fourteen migrations, and the seed data, in about four seconds.",
+      "start": 43.128,
+      "end": 48.118,
+      "filler": false,
+      "words": [
+        {
+          "word": "Postgres,",
+          "start": 43.128,
+          "end": 43.776
+        },
+        {
+          "word": "all",
+          "start": 43.776,
+          "end": 44.035
+        },
+        {
+          "word": "fourteen",
+          "start": 44.035,
+          "end": 44.619
+        },
+        {
+          "word": "migrations,",
+          "start": 44.619,
+          "end": 45.396
+        },
+        {
+          "word": "and",
+          "start": 45.396,
+          "end": 45.656
+        },
+        {
+          "word": "the",
+          "start": 45.656,
+          "end": 45.915
+        },
+        {
+          "word": "seed",
+          "start": 45.915,
+          "end": 46.239
+        },
+        {
+          "word": "data,",
+          "start": 46.239,
+          "end": 46.628
+        },
+        {
+          "word": "in",
+          "start": 46.628,
+          "end": 46.822
+        },
+        {
+          "word": "about",
+          "start": 46.822,
+          "end": 47.211
+        },
+        {
+          "word": "four",
+          "start": 47.211,
+          "end": 47.535
+        },
+        {
+          "word": "seconds.",
+          "start": 47.535,
+          "end": 48.118
+        }
+      ]
+    },
+    {
+      "id": "seg11",
+      "text": "And every developer gets a byte for byte identical environment, because the whole thing is content addressed.",
+      "start": 51.718,
+      "end": 57.623,
+      "filler": false,
+      "words": [
+        {
+          "word": "And",
+          "start": 51.718,
+          "end": 51.933
+        },
+        {
+          "word": "every",
+          "start": 51.933,
+          "end": 52.255
+        },
+        {
+          "word": "developer",
+          "start": 52.255,
+          "end": 52.792
+        },
+        {
+          "word": "gets",
+          "start": 52.792,
+          "end": 53.06
+        },
+        {
+          "word": "a",
+          "start": 53.06,
+          "end": 53.168
+        },
+        {
+          "word": "byte",
+          "start": 53.168,
+          "end": 53.436
+        },
+        {
+          "word": "for",
+          "start": 53.436,
+          "end": 53.651
+        },
+        {
+          "word": "byte",
+          "start": 53.651,
+          "end": 53.919
+        },
+        {
+          "word": "identical",
+          "start": 53.919,
+          "end": 54.456
+        },
+        {
+          "word": "environment,",
+          "start": 54.456,
+          "end": 55.154
+        },
+        {
+          "word": "because",
+          "start": 55.154,
+          "end": 55.583
+        },
+        {
+          "word": "the",
+          "start": 55.583,
+          "end": 55.798
+        },
+        {
+          "word": "whole",
+          "start": 55.798,
+          "end": 56.12
+        },
+        {
+          "word": "thing",
+          "start": 56.12,
+          "end": 56.442
+        },
+        {
+          "word": "is",
+          "start": 56.442,
+          "end": 56.603
+        },
+        {
+          "word": "content",
+          "start": 56.603,
+          "end": 57.032
+        },
+        {
+          "word": "addressed.",
+          "start": 57.032,
+          "end": 57.623
+        }
+      ]
+    },
+    {
+      "id": "seg12",
+      "text": "uh",
+      "start": 58.823,
+      "end": 59.177,
+      "filler": true,
+      "words": [
+        {
+          "word": "uh",
+          "start": 58.823,
+          "end": 59.177
+        }
+      ]
+    },
+    {
+      "id": "seg13",
+      "text": "And this is the live dashboard, where every query hitting your database shows up in real time along with its latency.",
+      "start": 59.627,
+      "end": 65.729,
+      "filler": false,
+      "words": [
+        {
+          "word": "And",
+          "start": 59.627,
+          "end": 59.834
+        },
+        {
+          "word": "this",
+          "start": 59.834,
+          "end": 60.092
+        },
+        {
+          "word": "is",
+          "start": 60.092,
+          "end": 60.247
+        },
+        {
+          "word": "the",
+          "start": 60.247,
+          "end": 60.454
+        },
+        {
+          "word": "live",
+          "start": 60.454,
+          "end": 60.713
+        },
+        {
+          "word": "dashboard,",
+          "start": 60.713,
+          "end": 61.281
+        },
+        {
+          "word": "where",
+          "start": 61.281,
+          "end": 61.592
+        },
+        {
+          "word": "every",
+          "start": 61.592,
+          "end": 61.902
+        },
+        {
+          "word": "query",
+          "start": 61.902,
+          "end": 62.212
+        },
+        {
+          "word": "hitting",
+          "start": 62.212,
+          "end": 62.626
+        },
+        {
+          "word": "your",
+          "start": 62.626,
+          "end": 62.885
+        },
+        {
+          "word": "database",
+          "start": 62.885,
+          "end": 63.35
+        },
+        {
+          "word": "shows",
+          "start": 63.35,
+          "end": 63.66
+        },
+        {
+          "word": "up",
+          "start": 63.66,
+          "end": 63.815
+        },
+        {
+          "word": "in",
+          "start": 63.815,
+          "end": 63.97
+        },
+        {
+          "word": "real",
+          "start": 63.97,
+          "end": 64.229
+        },
+        {
+          "word": "time",
+          "start": 64.229,
+          "end": 64.488
+        },
+        {
+          "word": "along",
+          "start": 64.488,
+          "end": 64.798
+        },
+        {
+          "word": "with",
+          "start": 64.798,
+          "end": 65.056
+        },
+        {
+          "word": "its",
+          "start": 65.056,
+          "end": 65.263
+        },
+        {
+          "word": "latency.",
+          "start": 65.263,
+          "end": 65.729
+        }
+      ]
+    },
+    {
+      "id": "seg14",
+      "text": "You can see there is one join in there that is taking a hundred and eighty milliseconds.",
+      "start": 66.529,
+      "end": 70.62,
+      "filler": false,
+      "words": [
+        {
+          "word": "You",
+          "start": 66.529,
+          "end": 66.713
+        },
+        {
+          "word": "can",
+          "start": 66.713,
+          "end": 66.896
+        },
+        {
+          "word": "see",
+          "start": 66.896,
+          "end": 67.08
+        },
+        {
+          "word": "there",
+          "start": 67.08,
+          "end": 67.356
+        },
+        {
+          "word": "is",
+          "start": 67.356,
+          "end": 67.494
+        },
+        {
+          "word": "one",
+          "start": 67.494,
+          "end": 67.678
+        },
+        {
+          "word": "join",
+          "start": 67.678,
+          "end": 67.908
+        },
+        {
+          "word": "in",
+          "start": 67.908,
+          "end": 68.045
+        },
+        {
+          "word": "there",
+          "start": 68.045,
+          "end": 68.321
+        },
+        {
+          "word": "that",
+          "start": 68.321,
+          "end": 68.551
+        },
+        {
+          "word": "is",
+          "start": 68.551,
+          "end": 68.689
+        },
+        {
+          "word": "taking",
+          "start": 68.689,
+          "end": 69.011
+        },
+        {
+          "word": "a",
+          "start": 69.011,
+          "end": 69.103
+        },
+        {
+          "word": "hundred",
+          "start": 69.103,
+          "end": 69.47
+        },
+        {
+          "word": "and",
+          "start": 69.47,
+          "end": 69.654
+        },
+        {
+          "word": "eighty",
+          "start": 69.654,
+          "end": 69.976
+        },
+        {
+          "word": "milliseconds.",
+          "start": 69.976,
+          "end": 70.62
+        }
+      ]
+    },
+    {
+      "id": "seg15",
+      "text": "um",
+      "start": 73.72,
+      "end": 74.052,
+      "filler": true,
+      "words": [
+        {
+          "word": "um",
+          "start": 73.72,
+          "end": 74.052
+        }
+      ]
+    },
+    {
+      "id": "seg16",
+      "text": "So you click into any slow query, and you get the full execution plan right there, without ever leaving the browser.",
+      "start": 74.452,
+      "end": 80.713,
+      "filler": false,
+      "words": [
+        {
+          "word": "So",
+          "start": 74.452,
+          "end": 74.613
+        },
+        {
+          "word": "you",
+          "start": 74.613,
+          "end": 74.827
+        },
+        {
+          "word": "click",
+          "start": 74.827,
+          "end": 75.148
+        },
+        {
+          "word": "into",
+          "start": 75.148,
+          "end": 75.416
+        },
+        {
+          "word": "any",
+          "start": 75.416,
+          "end": 75.63
+        },
+        {
+          "word": "slow",
+          "start": 75.63,
+          "end": 75.897
+        },
+        {
+          "word": "query,",
+          "start": 75.897,
+          "end": 76.272
+        },
+        {
+          "word": "and",
+          "start": 76.272,
+          "end": 76.486
+        },
+        {
+          "word": "you",
+          "start": 76.486,
+          "end": 76.7
+        },
+        {
+          "word": "get",
+          "start": 76.7,
+          "end": 76.914
+        },
+        {
+          "word": "the",
+          "start": 76.914,
+          "end": 77.128
+        },
+        {
+          "word": "full",
+          "start": 77.128,
+          "end": 77.395
+        },
+        {
+          "word": "execution",
+          "start": 77.395,
+          "end": 77.931
+        },
+        {
+          "word": "plan",
+          "start": 77.931,
+          "end": 78.198
+        },
+        {
+          "word": "right",
+          "start": 78.198,
+          "end": 78.519
+        },
+        {
+          "word": "there,",
+          "start": 78.519,
+          "end": 78.894
+        },
+        {
+          "word": "without",
+          "start": 78.894,
+          "end": 79.322
+        },
+        {
+          "word": "ever",
+          "start": 79.322,
+          "end": 79.589
+        },
+        {
+          "word": "leaving",
+          "start": 79.589,
+          "end": 80.017
+        },
+        {
+          "word": "the",
+          "start": 80.017,
+          "end": 80.231
+        },
+        {
+          "word": "browser.",
+          "start": 80.231,
+          "end": 80.713
+        }
+      ]
+    },
+    {
+      "id": "seg17",
+      "text": "And in this case it is a sequential scan throwing away two hundred and forty thousand rows, which is the actual bug.",
+      "start": 81.613,
+      "end": 87.901,
+      "filler": false,
+      "words": [
+        {
+          "word": "And",
+          "start": 81.613,
+          "end": 81.828
+        },
+        {
+          "word": "in",
+          "start": 81.828,
+          "end": 81.989
+        },
+        {
+          "word": "this",
+          "start": 81.989,
+          "end": 82.258
+        },
+        {
+          "word": "case",
+          "start": 82.258,
+          "end": 82.527
+        },
+        {
+          "word": "it",
+          "start": 82.527,
+          "end": 82.688
+        },
+        {
+          "word": "is",
+          "start": 82.688,
+          "end": 82.849
+        },
+        {
+          "word": "a",
+          "start": 82.849,
+          "end": 82.957
+        },
+        {
+          "word": "sequential",
+          "start": 82.957,
+          "end": 83.548
+        },
+        {
+          "word": "scan",
+          "start": 83.548,
+          "end": 83.816
+        },
+        {
+          "word": "throwing",
+          "start": 83.816,
+          "end": 84.3
+        },
+        {
+          "word": "away",
+          "start": 84.3,
+          "end": 84.569
+        },
+        {
+          "word": "two",
+          "start": 84.569,
+          "end": 84.784
+        },
+        {
+          "word": "hundred",
+          "start": 84.784,
+          "end": 85.214
+        },
+        {
+          "word": "and",
+          "start": 85.214,
+          "end": 85.429
+        },
+        {
+          "word": "forty",
+          "start": 85.429,
+          "end": 85.751
+        },
+        {
+          "word": "thousand",
+          "start": 85.751,
+          "end": 86.235
+        },
+        {
+          "word": "rows,",
+          "start": 86.235,
+          "end": 86.557
+        },
+        {
+          "word": "which",
+          "start": 86.557,
+          "end": 86.88
+        },
+        {
+          "word": "is",
+          "start": 86.88,
+          "end": 87.041
+        },
+        {
+          "word": "the",
+          "start": 87.041,
+          "end": 87.256
+        },
+        {
+          "word": "actual",
+          "start": 87.256,
+          "end": 87.632
+        },
+        {
+          "word": "bug.",
+          "start": 87.632,
+          "end": 87.901
+        }
+      ]
+    },
+    {
+      "id": "seg18",
+      "text": "We found three real performance problems in our own app the first afternoon we had this running.",
+      "start": 90.501,
+      "end": 95.344,
+      "filler": false,
+      "words": [
+        {
+          "word": "We",
+          "start": 90.501,
+          "end": 90.651
+        },
+        {
+          "word": "found",
+          "start": 90.651,
+          "end": 90.95
+        },
+        {
+          "word": "three",
+          "start": 90.95,
+          "end": 91.25
+        },
+        {
+          "word": "real",
+          "start": 91.25,
+          "end": 91.499
+        },
+        {
+          "word": "performance",
+          "start": 91.499,
+          "end": 92.099
+        },
+        {
+          "word": "problems",
+          "start": 92.099,
+          "end": 92.548
+        },
+        {
+          "word": "in",
+          "start": 92.548,
+          "end": 92.698
+        },
+        {
+          "word": "our",
+          "start": 92.698,
+          "end": 92.898
+        },
+        {
+          "word": "own",
+          "start": 92.898,
+          "end": 93.097
+        },
+        {
+          "word": "app",
+          "start": 93.097,
+          "end": 93.297
+        },
+        {
+          "word": "the",
+          "start": 93.297,
+          "end": 93.497
+        },
+        {
+          "word": "first",
+          "start": 93.497,
+          "end": 93.796
+        },
+        {
+          "word": "afternoon",
+          "start": 93.796,
+          "end": 94.296
+        },
+        {
+          "word": "we",
+          "start": 94.296,
+          "end": 94.446
+        },
+        {
+          "word": "had",
+          "start": 94.446,
+          "end": 94.645
+        },
+        {
+          "word": "this",
+          "start": 94.645,
+          "end": 94.895
+        },
+        {
+          "word": "running.",
+          "start": 94.895,
+          "end": 95.344
+        }
+      ]
+    },
+    {
+      "id": "seg19",
+      "text": "so",
+      "start": 96.644,
+      "end": 97.123,
+      "filler": true,
+      "words": [
+        {
+          "word": "so",
+          "start": 96.644,
+          "end": 97.123
+        }
+      ]
+    },
+    {
+      "id": "seg20",
+      "text": "Next up we want to add branch aware databases, so every pull request gets its own isolated copy.",
+      "start": 97.523,
+      "end": 103.532,
+      "filler": false,
+      "words": [
+        {
+          "word": "Next",
+          "start": 97.523,
+          "end": 97.833
+        },
+        {
+          "word": "up",
+          "start": 97.833,
+          "end": 98.019
+        },
+        {
+          "word": "we",
+          "start": 98.019,
+          "end": 98.205
+        },
+        {
+          "word": "want",
+          "start": 98.205,
+          "end": 98.514
+        },
+        {
+          "word": "to",
+          "start": 98.514,
+          "end": 98.7
+        },
+        {
+          "word": "add",
+          "start": 98.7,
+          "end": 98.948
+        },
+        {
+          "word": "branch",
+          "start": 98.948,
+          "end": 99.382
+        },
+        {
+          "word": "aware",
+          "start": 99.382,
+          "end": 99.753
+        },
+        {
+          "word": "databases,",
+          "start": 99.753,
+          "end": 100.435
+        },
+        {
+          "word": "so",
+          "start": 100.435,
+          "end": 100.621
+        },
+        {
+          "word": "every",
+          "start": 100.621,
+          "end": 100.992
+        },
+        {
+          "word": "pull",
+          "start": 100.992,
+          "end": 101.302
+        },
+        {
+          "word": "request",
+          "start": 101.302,
+          "end": 101.797
+        },
+        {
+          "word": "gets",
+          "start": 101.797,
+          "end": 102.107
+        },
+        {
+          "word": "its",
+          "start": 102.107,
+          "end": 102.355
+        },
+        {
+          "word": "own",
+          "start": 102.355,
+          "end": 102.603
+        },
+        {
+          "word": "isolated",
+          "start": 102.603,
+          "end": 103.16
+        },
+        {
+          "word": "copy.",
+          "start": 103.16,
+          "end": 103.532
+        }
+      ]
+    },
+    {
+      "id": "seg21",
+      "text": "That is Tidepool. Thanks for watching.",
+      "start": 105.932,
+      "end": 108.171,
+      "filler": false,
+      "words": [
+        {
+          "word": "That",
+          "start": 105.932,
+          "end": 106.219
+        },
+        {
+          "word": "is",
+          "start": 106.219,
+          "end": 106.391
+        },
+        {
+          "word": "Tidepool.",
+          "start": 106.391,
+          "end": 106.965
+        },
+        {
+          "word": "Thanks",
+          "start": 106.965,
+          "end": 107.367
+        },
+        {
+          "word": "for",
+          "start": 107.367,
+          "end": 107.597
+        },
+        {
+          "word": "watching.",
+          "start": 107.597,
+          "end": 108.171
+        }
+      ]
+    }
+  ]
+}

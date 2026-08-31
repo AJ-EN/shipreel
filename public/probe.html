@@ -1,0 +1,37 @@
+<!doctype html><meta charset=utf-8><title>webmcp probe</title>
+<body><pre id=out>pending</pre><script type="module">
+const log = []
+const say = (m) => { log.push(m); document.getElementById('out').textContent = 'RESULT:' + log.join(' | ') }
+try {
+  const mc = document.modelContext
+  if (!mc?.registerTool) { say('absent'); throw 0 }
+
+  const base = new AbortController()
+  await mc.registerTool({
+    name: 'probe_read',
+    description: 'Read-only probe tool.',
+    inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+    annotations: { readOnlyHint: true, untrustedContentHint: true },
+    execute: async () => 'read-ok',
+  }, { signal: base.signal })
+
+  const dyn = new AbortController()
+  await mc.registerTool({
+    name: 'probe_write',
+    description: 'Probe tool with args.',
+    inputSchema: { type: 'object', properties: { n: { type: 'number', description: 'a number' } }, required: ['n'], additionalProperties: false },
+    execute: async ({ n }) => `write-ok:${n * 2}`,
+  }, { signal: dyn.signal })
+
+  const tools = await mc.getTools()
+  say(`registered=${tools.length}`)
+  say(`names=${tools.map(t => t.name).join(',')}`)
+
+  const w = tools.find(t => t.name === 'probe_write')
+  say(`exec=${await mc.executeTool(w, JSON.stringify({ n: 21 }))}`)
+
+  dyn.abort()
+  await new Promise(r => setTimeout(r, 50))
+  say(`afterAbort=${(await mc.getTools()).length}`)
+} catch (e) { if (e) say('ERR:' + (e?.message ?? e)) }
+</script></body>
