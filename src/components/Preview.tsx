@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useProject } from '../store/project'
 import type { Player } from '../engine/player'
-import { exportTimeline, downloadBlob, pickMimeType } from '../engine/export'
+import { pickMimeType } from '../engine/export'
+import { useExport } from '../store/exportState'
 
 const fmt = (s: number) => {
   const m = Math.floor(s / 60)
@@ -12,7 +13,10 @@ const fmt = (s: number) => {
 export default function Preview({ player }: { player: Player }) {
   const host = useRef<HTMLDivElement>(null)
   const [playing, setPlaying] = useState(false)
-  const [exporting, setExporting] = useState<number | null>(null)
+  const exportPhase = useExport((s) => s.phase)
+  const exportProgress = useExport((s) => s.progress)
+  const runExport = useExport((s) => s.run)
+  const exporting = exportPhase === 'rendering' ? exportProgress : null
   const playhead = useProject((s) => s.playhead)
   const duration = useProject((s) => s.duration())
   const clipCount = useProject((s) => s.clips.length)
@@ -44,19 +48,11 @@ export default function Preview({ player }: { player: Player }) {
     player.onEnded = () => setPlaying(false)
   }, [player])
 
-  const runExport = async () => {
-    if (exporting !== null) return
-    setExporting(0)
+  const startExport = async () => {
+    if (exportPhase === 'rendering') return
     setPlaying(true)
-    try {
-      const r = await exportTimeline(player, { onProgress: (f) => setExporting(f) })
-      downloadBlob(r.blob, `shipreel-cut.${r.extension}`)
-    } catch (e) {
-      alert(`Export failed: ${e instanceof Error ? e.message : e}`)
-    } finally {
-      setExporting(null)
-      setPlaying(false)
-    }
+    await runExport(player)
+    setPlaying(false)
   }
 
   const canExport = pickMimeType() !== null
@@ -95,7 +91,7 @@ export default function Preview({ player }: { player: Player }) {
         </span>
 
         <button
-          onClick={runExport}
+          onClick={startExport}
           disabled={duration === 0 || exporting !== null || !canExport}
           title={canExport ? 'Render in this tab and save the file' : 'This browser cannot record video'}
           className="shrink-0 px-3.5 h-9 rounded-lg text-[13px] font-medium bg-ink-800 hover:bg-ink-700 ring-1 ring-ink-600 disabled:opacity-40 transition-colors"

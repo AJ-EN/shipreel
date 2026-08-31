@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { Clip, MediaAsset, Transcript, ZoomRegion, EditEntry } from '../types'
 import { rippleDelete, clipSpan, clipEnd, uid, type Range } from '../engine/ripple'
+import { useActivity } from './activity'
 
 interface State {
   loaded: boolean
@@ -63,7 +64,12 @@ export const useProject = create<State>((set, get) => ({
     })
   },
 
-  note: (by, description) => set((s) => ({ editLog: [...s.editLog, { by, description }] })),
+  note: (by, description) => {
+    set((s) => ({ editLog: [...s.editLog, { by, description }] }))
+    // Agent actions are already logged by the tool wrapper; only surface the
+    // person's own edits here so the feed reads as one shared history.
+    if (by === 'user') useActivity.getState().note('user', 'you edited', description)
+  },
 
   drainUserEdits: () => {
     const { editLog, readCursor } = get()

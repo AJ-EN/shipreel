@@ -11,10 +11,12 @@
  * errors that tell the agent how to recover instead of just failing.
  */
 import { useProject } from '../store/project'
+import { useActivity, summariseArgs } from '../store/activity'
 import { clipSpan, clipEnd, type Range } from '../engine/ripple'
 import { sourceRangeToTimeline } from '../engine/silence'
 import type { Player } from '../engine/player'
-import { exportTimeline, downloadBlob, pickMimeType } from '../engine/export'
+import { pickMimeType, exportTimeline } from '../engine/export'
+import { useExport } from '../store/exportState'
 import type { Clip, MediaAsset } from '../types'
 
 const OUTPUT_BUDGET = 1500
@@ -62,7 +64,28 @@ const describeClip = (c: Clip, assets: MediaAsset[]) => {
 export function buildToolset(player: Player) {
   const base: WebMCPToolDescriptor[] = []
   const editing: WebMCPToolDescriptor[] = []
-  const reg = (tool: WebMCPToolDescriptor, group: WebMCPToolDescriptor[]) => { group.push(tool) }
+
+  /**
+   * Wraps every tool so each call appears in the Agent Activity panel as it
+   * happens. The person can watch the agent work rather than inferring it from
+   * the timeline jumping around.
+   */
+  const reg = (tool: WebMCPToolDescriptor, group: WebMCPToolDescriptor[]) => {
+    group.push({
+      ...tool,
+      execute: async (input: unknown, ctx?: { signal?: AbortSignal }) => {
+        const id = useActivity.getState().start('tool', tool.name, summariseArgs(input))
+        try {
+          const out = await tool.execute(input, ctx)
+          useActivity.getState().finish(id, String(out))
+          return out
+        } catch (e) {
+          useActivity.getState().finish(id, e instanceof Error ? e.message : String(e), 'error')
+          throw e
+        }
+      },
+    })
+  }
 
   // ------------------------------------------------------------ read tools --
   reg({
@@ -178,11 +201,79 @@ export function buildToolset(player: Player) {
       if (!mapped.length) {
         return `No gaps of ${floor}s or longer remain in the voiceover. Lower min_seconds to find shorter pauses.`
       }
+      // List every range that fits the output budget. Truncating while still
+      // reporting the full count would quietly strand the remainder: an agent
+      // cuts what it was handed and believes the job is done.
+      const MAX_LISTED = 60
       const total = mapped.reduce((m, r) => m + (r.end - r.start), 0)
-      const listed = mapped.slice(0, 14).map((r) => `${ts(r.start)}-${ts(r.end)}`).join(', ')
+      const shown = mapped.slice(0, MAX_LISTED)
+      const listed = shown.map((r) => `${ts(r.start)}-${ts(r.end)}`).join(', ')
+      const more = mapped.length > MAX_LISTED
+        ? `\nThese are the first ${MAX_LISTED} of ${mapped.length}. Cut them, then call find_silences again for the rest.`
+        : ''
       return cap(
-        `${mapped.length} silence(s) of ${floor}s+, ${t(total)} in total:\n${listed}` +
-        (mapped.length > 14 ? `\n… +${mapped.length - 14} more (pass them all by calling remove_ranges with this list)` : ''),
+        `${mapped.length} silence(s) of ${floor}s+, ${t(total)} in total. ` +
+        `Pass every range below to remove_ranges in one call:\n${listed}${more}`,
+      )
+    },
+  }, base)
+
+  reg({
+    name: 'optimize_duration',
+    description:
+      'Cut the edit down toward a target runtime. Reclaims time mechanically first, tightening pauses in passes until they are as short as they can go without sounding clipped. If that is not enough it stops and hands back the longest sentences still in the edit, with their ranges, so you can choose what to drop rather than losing narration silently.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        target_seconds: { type: 'number', description: 'Runtime to come in under, e.g. 60 for a one-minute cut.' },
+      },
+      required: ['target_seconds'],
+      additionalProperties: false,
+    },
+    execute: ({ target_seconds }: { target_seconds: number }) => {
+      if (!(target_seconds > 0)) return 'Give a positive target, for example 60 for a one-minute cut.'
+      const st = useProject.getState()
+      const start = st.duration()
+      if (start <= target_seconds) {
+        return `Already ${t(start)}, inside the ${target_seconds}s target. Nothing to cut.`
+      }
+
+      // Pass over progressively shorter pauses, stopping the moment we fit.
+      const steps: string[] = []
+      for (const floor of [0.4, 0.3, 0.22]) {
+        if (useProject.getState().duration() <= target_seconds) break
+        const cur = useProject.getState()
+        const ranges = cur.detectedSilences
+          .filter((r) => r.end - r.start >= floor)
+          .map((r) => sourceRangeToTimeline(cur.clips, flatMediaId(cur), r))
+          .filter((r): r is Range => r !== null && r.end - r.start > 0.02)
+        if (!ranges.length) continue
+        const removed = cur.removeRanges(ranges, 'agent')
+        if (removed > 0.05) steps.push(`pauses ≥${floor}s: −${t(removed)}`)
+      }
+
+      const after = useProject.getState().duration()
+      const did = steps.length ? steps.join(', ') : 'no pauses left to reclaim'
+      if (after <= target_seconds) {
+        return `Reached ${t(after)}, inside the ${target_seconds}s target. Reclaimed ${t(start - after)} (${did}).`
+      }
+
+      // Mechanical headroom is gone. What remains is an editorial call, so
+      // surface the candidates and let the agent and person decide together.
+      const cur = useProject.getState()
+      const spoken = (cur.transcript?.segments ?? [])
+        .filter((seg) => !seg.filler)
+        .map((seg) => ({ seg, at: sourceRangeToTimeline(cur.clips, flatMediaId(cur), { start: seg.start, end: seg.end }) }))
+        .filter((x): x is { seg: typeof x.seg; at: Range } => x.at !== null && x.at.end - x.at.start > 0.4)
+        .sort((a, b) => (b.at.end - b.at.start) - (a.at.end - a.at.start))
+        .slice(0, 5)
+        .map((x) => `  ${ts(x.at.start)}-${ts(x.at.end)} (${t(x.at.end - x.at.start)}) "${x.seg.text.slice(0, 60)}"`)
+
+      return cap(
+        `Now ${t(after)} after reclaiming ${t(start - after)} (${did}), still ${t(after - target_seconds)} over ` +
+        `the ${target_seconds}s target. Pauses are as tight as they go. Closing the gap means dropping narration — ` +
+        `the longest sentences still in the edit:\n${spoken.join('\n')}\n` +
+        `Pick the ones that matter least and pass their ranges to remove_ranges.`,
       )
     },
   }, base)
@@ -404,6 +495,27 @@ export function buildToolset(player: Player) {
       }, editing)
 
       reg({
+        name: 'get_export_status',
+        description:
+          'Check how the current render is going. Reports whether it is idle, rendering (with progress), finished, or failed. Poll this after export_video rather than assuming the file is ready; a render takes roughly as long as the video.',
+        inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+        annotations: { readOnlyHint: true },
+        execute: () => {
+          const e = useExport.getState()
+          switch (e.phase) {
+            case 'idle':
+              return 'No render has been started. Call export_video to begin one.'
+            case 'rendering':
+              return `Rendering ${Math.round(e.progress * 100)}% of "${e.filename}". Check again shortly — the tab must stay open until it finishes.`
+            case 'ready':
+              return `Render complete: "${e.filename}", ${e.sizeKB}KB, took ${e.elapsed?.toFixed(1)}s. The file has been saved to the person's downloads.`
+            case 'error':
+              return `The render failed: ${e.message}. Check the timeline is not empty and try export_video again.`
+          }
+        },
+      }, editing)
+
+      reg({
         name: 'export_video',
         description:
           'Render the finished timeline to a video file and save it to the person\'s computer. Rendering happens in the tab and runs for about as long as the video, so this returns straight away and the download appears when it finishes.',
@@ -416,11 +528,11 @@ export function buildToolset(player: Player) {
           const dur = useProject.getState().duration()
           if (dur < 0.5) return 'There is nothing on the timeline to export yet.'
           if (!pickMimeType()) return 'This browser cannot record video, so export is unavailable here. Try Chrome.'
-          const name = (filename || 'shipreel-cut').replace(/[^\w-]+/g, '-')
-          void exportTimeline(player)
-            .then((r) => downloadBlob(r.blob, `${name}.${r.extension}`))
-            .catch((e) => console.error('[shipreel] export failed', e))
-          return `Export started for a ${t(dur)} cut. It renders in real time, so the file will download in about ${Math.ceil(dur)}s. Keep this tab visible while it runs.`
+          if (useExport.getState().phase === 'rendering') {
+            return 'A render is already in progress. Call get_export_status to follow it.'
+          }
+          void useExport.getState().run(player, filename)
+          return `Render started for a ${t(dur)} cut. It runs in real time, so expect about ${Math.ceil(dur)}s. Call get_export_status to check progress; the file downloads on its own when it is done.`
         },
       }, editing)
     }
@@ -440,7 +552,12 @@ export function installWebMCP(player: Player): () => void {
   const { base, editing } = buildToolset(player)
   // Debug/eval hook: lets the toolset be driven without a browser agent, the
   // way document.modelContext.executeTool would in a WebMCP-capable browser.
-  ;(window as any).shipreel = { tools: [...base, ...editing], player, exportTimeline }
+  ;(window as any).shipreel = {
+    tools: [...base, ...editing],
+    player,
+    exportTimeline,
+    stores: { project: useProject, activity: useActivity, exportState: useExport },
+  }
 
   const mc = document.modelContext
   if (!mc?.registerTool) return () => {}

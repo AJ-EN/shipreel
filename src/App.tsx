@@ -7,6 +7,7 @@ import { installWebMCP } from './webmcp/tools'
 import Preview from './components/Preview'
 import Timeline from './components/Timeline'
 import TranscriptPanel from './components/TranscriptPanel'
+import ActivityPanel from './components/ActivityPanel'
 import type { MediaAsset, Transcript } from './types'
 
 interface DemoProject {
@@ -134,12 +135,15 @@ export default function App() {
       )}
 
       {phase.kind === 'ready' && player && (
-        <main className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-4 p-4">
+        <main className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-4 p-4">
           <div className="flex flex-col gap-4 min-h-0">
             <div className="flex-1 min-h-0"><Preview player={player} /></div>
             <div className="shrink-0"><Timeline player={player} /></div>
           </div>
-          <TranscriptPanel player={player} />
+          <div className="grid grid-rows-2 gap-4 min-h-0">
+            <ActivityPanel />
+            <TranscriptPanel player={player} />
+          </div>
         </main>
       )}
     </div>

@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "gen:assets": "node scripts/generate-demo-assets.mjs",
     "test:ripple": "node --experimental-strip-types scripts/test-ripple.ts",
-    "check:webmcp": "node scripts/webmcp-check.mjs"
+    "check:webmcp": "node scripts/webmcp-check.mjs",
+    "evals": "node scripts/evals.mjs"
   },
   "dependencies": {
     "react": "^19.2.0",
