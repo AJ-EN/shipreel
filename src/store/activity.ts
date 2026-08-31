@@ -8,6 +8,12 @@ export interface ActivityEntry {
   kind: ActivityKind
   /** Tool name, or a short label for user/phase rows. */
   label: string
+  /**
+   * Plain-English account of what the call achieved, e.g. "Removed 26.4s of
+   * dead air". This is what the panel leads with: someone watching should be
+   * able to follow the agent's reasoning without knowing the tool names.
+   */
+  headline?: string
   /** Compact argument echo, e.g. `min_seconds: 0.4`. */
   args?: string
   /** First line of the tool's return value. */
@@ -21,7 +27,7 @@ let n = 0
 interface State {
   entries: ActivityEntry[]
   start: (kind: ActivityKind, label: string, args?: string) => string
-  finish: (id: string, result: string, status?: ActivityStatus) => void
+  finish: (id: string, result: string, status?: ActivityStatus, headline?: string) => void
   note: (kind: ActivityKind, label: string, result?: string) => void
   clear: () => void
 }
@@ -50,10 +56,10 @@ export const useActivity = create<State>((set) => ({
     return id
   },
 
-  finish: (id, result, status = 'ok') =>
+  finish: (id, result, status = 'ok', headline) =>
     set((s) => ({
       entries: s.entries.map((e) =>
-        e.id === id ? { ...e, result: result.split('\n')[0].slice(0, 220), status } : e,
+        e.id === id ? { ...e, headline, result: result.split('\n')[0].slice(0, 220), status } : e,
       ),
     })),
 

@@ -8,6 +8,7 @@ import Preview from './components/Preview'
 import Timeline from './components/Timeline'
 import TranscriptPanel from './components/TranscriptPanel'
 import ActivityPanel from './components/ActivityPanel'
+import TargetPanel from './components/TargetPanel'
 import type { MediaAsset, Transcript } from './types'
 
 interface DemoProject {
@@ -140,9 +141,10 @@ export default function App() {
             <div className="flex-1 min-h-0"><Preview player={player} /></div>
             <div className="shrink-0"><Timeline player={player} /></div>
           </div>
-          <div className="grid grid-rows-2 gap-4 min-h-0">
-            <ActivityPanel />
-            <TranscriptPanel player={player} />
+          <div className="flex flex-col gap-4 min-h-0">
+            <div className="shrink-0"><TargetPanel /></div>
+            <div className="flex-1 min-h-0"><ActivityPanel /></div>
+            <div className="flex-1 min-h-0"><TranscriptPanel player={player} /></div>
           </div>
         </main>
       )}

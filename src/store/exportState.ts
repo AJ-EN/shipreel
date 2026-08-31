@@ -13,6 +13,9 @@ interface State {
   /** Wall-clock seconds the last render took. */
   elapsed: number | null
   sizeKB: number | null
+  /** Runtime of the rendered cut, and the container it was written to. */
+  videoSeconds: number | null
+  format: string | null
   run: (player: Player, filename?: string) => Promise<void>
 }
 
@@ -28,12 +31,17 @@ export const useExport = create<State>((set, get) => ({
   message: null,
   elapsed: null,
   sizeKB: null,
+  videoSeconds: null,
+  format: null,
 
   run: async (player, filename) => {
     if (get().phase === 'rendering') return
     const name = (filename || 'shipreel-cut').replace(/[^\w-]+/g, '-')
     const t0 = performance.now()
-    set({ phase: 'rendering', progress: 0, filename: name, message: null, elapsed: null, sizeKB: null })
+    set({
+      phase: 'rendering', progress: 0, filename: name,
+      message: null, elapsed: null, sizeKB: null, videoSeconds: null, format: null,
+    })
     try {
       const r = await exportTimeline(player, { onProgress: (p) => set({ progress: p }) })
       downloadBlob(r.blob, `${name}.${r.extension}`)
@@ -43,6 +51,8 @@ export const useExport = create<State>((set, get) => ({
         filename: `${name}.${r.extension}`,
         elapsed: (performance.now() - t0) / 1000,
         sizeKB: Math.round(r.blob.size / 1024),
+        videoSeconds: r.duration,
+        format: r.extension.toUpperCase(),
         message: null,
       })
     } catch (e) {

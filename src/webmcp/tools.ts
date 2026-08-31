@@ -16,7 +16,9 @@ import { clipSpan, clipEnd, type Range } from '../engine/ripple'
 import { sourceRangeToTimeline } from '../engine/silence'
 import type { Player } from '../engine/player'
 import { pickMimeType, exportTimeline } from '../engine/export'
+import { optimizeToTarget, type OptimizeReport } from '../engine/optimize'
 import { useExport } from '../store/exportState'
+import { useSpotlight } from '../store/spotlight'
 import type { Clip, MediaAsset } from '../types'
 
 const OUTPUT_BUDGET = 1500
@@ -67,8 +69,9 @@ export function buildToolset(player: Player) {
 
   /**
    * Wraps every tool so each call appears in the Agent Activity panel as it
-   * happens. The person can watch the agent work rather than inferring it from
-   * the timeline jumping around.
+   * happens — as plain English first, with the tool name and arguments kept
+   * underneath as evidence. The person can watch the agent work rather than
+   * inferring it from the timeline jumping around.
    */
   const reg = (tool: WebMCPToolDescriptor, group: WebMCPToolDescriptor[]) => {
     group.push({
@@ -77,7 +80,14 @@ export function buildToolset(player: Player) {
         const id = useActivity.getState().start('tool', tool.name, summariseArgs(input))
         try {
           const out = await tool.execute(input, ctx)
-          useActivity.getState().finish(id, String(out))
+          const text = String(out)
+          let line: string | undefined
+          try {
+            line = HEADLINES[tool.name]?.(input as any, text)
+          } catch {
+            // A cosmetic label must never break the tool call it describes.
+          }
+          useActivity.getState().finish(id, text, 'ok', line)
           return out
         } catch (e) {
           useActivity.getState().finish(id, e instanceof Error ? e.message : String(e), 'error')
@@ -221,61 +231,21 @@ export function buildToolset(player: Player) {
   reg({
     name: 'optimize_duration',
     description:
-      'Cut the edit down toward a target runtime. Reclaims time mechanically first, tightening pauses in passes until they are as short as they can go without sounding clipped. If that is not enough it stops and hands back the longest sentences still in the edit, with their ranges, so you can choose what to drop rather than losing narration silently.',
+      'Cut the edit down to a target runtime and keep going until it fits. Reclaims dead air first, then filler words, then drops the longest sentences one at a time — stopping the moment the target is met. Reports every pass it ran and names any narration it dropped. Set keep_narration to stop before the last step and hand back candidates instead.',
     inputSchema: {
       type: 'object',
       properties: {
         target_seconds: { type: 'number', description: 'Runtime to come in under, e.g. 60 for a one-minute cut.' },
+        keep_narration: {
+          type: 'boolean',
+          description: 'Stop before dropping any spoken lines and report what could go instead. Defaults to false.',
+        },
       },
       required: ['target_seconds'],
       additionalProperties: false,
     },
-    execute: ({ target_seconds }: { target_seconds: number }) => {
-      if (!(target_seconds > 0)) return 'Give a positive target, for example 60 for a one-minute cut.'
-      const st = useProject.getState()
-      const start = st.duration()
-      if (start <= target_seconds) {
-        return `Already ${t(start)}, inside the ${target_seconds}s target. Nothing to cut.`
-      }
-
-      // Pass over progressively shorter pauses, stopping the moment we fit.
-      const steps: string[] = []
-      for (const floor of [0.4, 0.3, 0.22]) {
-        if (useProject.getState().duration() <= target_seconds) break
-        const cur = useProject.getState()
-        const ranges = cur.detectedSilences
-          .filter((r) => r.end - r.start >= floor)
-          .map((r) => sourceRangeToTimeline(cur.clips, flatMediaId(cur), r))
-          .filter((r): r is Range => r !== null && r.end - r.start > 0.02)
-        if (!ranges.length) continue
-        const removed = cur.removeRanges(ranges, 'agent')
-        if (removed > 0.05) steps.push(`pauses ≥${floor}s: −${t(removed)}`)
-      }
-
-      const after = useProject.getState().duration()
-      const did = steps.length ? steps.join(', ') : 'no pauses left to reclaim'
-      if (after <= target_seconds) {
-        return `Reached ${t(after)}, inside the ${target_seconds}s target. Reclaimed ${t(start - after)} (${did}).`
-      }
-
-      // Mechanical headroom is gone. What remains is an editorial call, so
-      // surface the candidates and let the agent and person decide together.
-      const cur = useProject.getState()
-      const spoken = (cur.transcript?.segments ?? [])
-        .filter((seg) => !seg.filler)
-        .map((seg) => ({ seg, at: sourceRangeToTimeline(cur.clips, flatMediaId(cur), { start: seg.start, end: seg.end }) }))
-        .filter((x): x is { seg: typeof x.seg; at: Range } => x.at !== null && x.at.end - x.at.start > 0.4)
-        .sort((a, b) => (b.at.end - b.at.start) - (a.at.end - a.at.start))
-        .slice(0, 5)
-        .map((x) => `  ${ts(x.at.start)}-${ts(x.at.end)} (${t(x.at.end - x.at.start)}) "${x.seg.text.slice(0, 60)}"`)
-
-      return cap(
-        `Now ${t(after)} after reclaiming ${t(start - after)} (${did}), still ${t(after - target_seconds)} over ` +
-        `the ${target_seconds}s target. Pauses are as tight as they go. Closing the gap means dropping narration — ` +
-        `the longest sentences still in the edit:\n${spoken.join('\n')}\n` +
-        `Pick the ones that matter least and pass their ranges to remove_ranges.`,
-      )
-    },
+    execute: async ({ target_seconds, keep_narration }: { target_seconds: number; keep_narration?: boolean }) =>
+      cap(describeOptimize(await optimizeToTarget(target_seconds, { keepNarration: keep_narration === true }))),
   }, base)
 
   // ----------------------------------------------------------- write tools --
@@ -372,6 +342,9 @@ export function buildToolset(player: Player) {
       s.setPlayhead(at)
       await player.renderAt(at)
       const clip = s.clipsOn('video').find((c) => at >= c.start && at < clipEnd(c))
+      // Mark the frame as the agent's doing, so the jump reads as deliberate
+      // rather than as the preview wandering off on its own.
+      useSpotlight.getState().show(at, clip ? `showing ${clip.mediaId}` : 'blank frame here')
       return `Playhead moved to ${t(at)} of ${t(dur)}. ${clip ? `Showing ${clip.mediaId}.` : 'No footage at this moment — blank frame.'}`
     },
   }, base)
@@ -508,7 +481,7 @@ export function buildToolset(player: Player) {
             case 'rendering':
               return `Rendering ${Math.round(e.progress * 100)}% of "${e.filename}". Check again shortly — the tab must stay open until it finishes.`
             case 'ready':
-              return `Render complete: "${e.filename}", ${e.sizeKB}KB, took ${e.elapsed?.toFixed(1)}s. The file has been saved to the person's downloads.`
+              return `Render complete: "${e.filename}" — ${e.videoSeconds?.toFixed(1)}s of ${e.format} video, ${e.sizeKB}KB, rendered in ${e.elapsed?.toFixed(1)}s. The file has been saved to the person's downloads.`
             case 'error':
               return `The render failed: ${e.message}. Check the timeline is not empty and try export_video again.`
           }
@@ -556,7 +529,8 @@ export function installWebMCP(player: Player): () => void {
     tools: [...base, ...editing],
     player,
     exportTimeline,
-    stores: { project: useProject, activity: useActivity, exportState: useExport },
+    optimizeToTarget,
+    stores: { project: useProject, activity: useActivity, exportState: useExport, spotlight: useSpotlight },
   }
 
   const mc = document.modelContext
@@ -592,7 +566,142 @@ export function installWebMCP(player: Player): () => void {
   }
 }
 
+// --------------------------------------------------------------- narration --
+
+/**
+ * How each tool call reads in the Agent Activity panel.
+ *
+ * The panel leads with these lines and keeps the tool name and arguments
+ * underneath, so someone watching a demo can follow what the agent achieved
+ * without knowing the tool surface, while anyone who cares can still see the
+ * exact call that produced it.
+ *
+ * Every entry falls back to the tool's own first sentence, so a wording change
+ * downgrades the panel to something still truthful rather than to nothing.
+ */
+const first = (r: string) => r.split('\n')[0].split('. ')[0].replace(/\.$/, '')
+const num = (r: string, re: RegExp) => r.match(re)?.[1]
+
+const HEADLINES: Record<string, (input: any, result: string) => string> = {
+  get_project_state: (_i, r) => {
+    const edit = r.match(/Since your last check the person: (.+?)\.?$/m)
+    if (edit) return `Picked up your edit — ${edit[1]}`
+    const runtime = num(r, /Runtime: ([\d.]+s)/)
+    const clips = num(r, /Video clips: (\d+)/)
+    return runtime ? `Checked the timeline — ${runtime}, ${clips ?? 0} clip(s)` : first(r)
+  },
+
+  search_transcript: (i: { query: string }, r) => {
+    const at = num(r, /([\d.]+)s-[\d.]+s/)
+    return at ? `Found “${i.query}” in the narration at ${(+at).toFixed(1)}s` : `No mention of “${i.query}” in the narration`
+  },
+
+  find_silences: (_i, r) => {
+    const n = num(r, /^(\d+) silence/)
+    const total = num(r, /, ([\d.]+s) in total/)
+    return n ? `Analysed the voiceover — ${n} silent sections, ${total} of dead air` : 'Analysed the voiceover — no dead air left'
+  },
+
+  optimize_duration: (i: { target_seconds: number }, r) => {
+    if (/^Target met/.test(r)) return `Hit the ${i.target_seconds}s target — now ${num(r, /→ ([\d.]+s)/) ?? ''}`.trim()
+    const now = num(r, /^Now ([\d.]+s)/)
+    return now ? `Reached ${now}, still over the ${i.target_seconds}s target` : first(r)
+  },
+
+  remove_ranges: (_i, r) => {
+    const cut = num(r, /^Cut ([\d.]+s)/)
+    const n = num(r, /across (\d+) range/)
+    const to = num(r, /→ ([\d.]+s)/)
+    return cut ? `Removed ${cut} across ${n} cut(s) — runtime now ${to}` : first(r)
+  },
+
+  place_clip: (i: { media: string }, r) => {
+    const at = num(r, /at ([\d.]+s)-/)
+    return at ? `Placed the ${i.media} recording at ${at}` : first(r)
+  },
+
+  preview_at: (_i, r) => {
+    const at = num(r, /moved to ([\d.]+s)/)
+    const showing = num(r, /Showing (\w+)/)
+    if (!at) return first(r)
+    return `Previewing ${at} for you${showing ? ` — showing ${showing}` : ''}`
+  },
+
+  trim_clip: (_i, r) => {
+    const span = num(r, /occupies ([\d.]+s)/)
+    const media = num(r, /of (\w+) and/)
+    return span ? `Trimmed the ${media ?? ''} clip to ${span}`.replace('  ', ' ') : first(r)
+  },
+
+  move_clip: (_i, r) => {
+    const at = num(r, /starts at ([\d.]+s)/)
+    return at ? `Moved the clip to ${at}` : first(r)
+  },
+
+  set_clip_speed: (_i, r) => {
+    const sp = num(r, /is now ([\d.]+)x/)
+    return sp ? `Set the clip to ${sp}× speed` : first(r)
+  },
+
+  add_zoom: (_i, r) => {
+    const scale = num(r, /a ([\d.]+)x zoom/)
+    const at = num(r, /from ([\d.]+s)/)
+    return scale ? `Zoomed in ${scale}× at ${at}` : first(r)
+  },
+
+  remove_clip: (_i, r) => (/^Removed/.test(r) ? 'Took a clip off the timeline' : first(r)),
+
+  export_video: (_i, r) => {
+    const dur = num(r, /for a ([\d.]+s) cut/)
+    return dur ? `Started rendering a ${dur} cut` : first(r)
+  },
+
+  get_export_status: (_i, r) => {
+    if (/^Render complete/.test(r)) return `Render complete — ${num(r, /"([^"]+)"/) ?? 'file saved'}`
+    if (/^Rendering/.test(r)) return `Rendering ${num(r, /Rendering (\d+%)/) ?? ''}`.trim()
+    if (/^The render failed/.test(r)) return 'The render failed'
+    return 'No render running'
+  },
+}
+
 /** The voiceover asset id — the only audio source in a project today. */
 function flatMediaId(s: ReturnType<typeof useProject.getState>) {
   return s.assets.find((a) => a.kind === 'audio')?.id ?? ''
+}
+
+/**
+ * Turns an optimizer run into text an agent can act on.
+ *
+ * The passes are listed in the order they ran so the agent can see how the
+ * time was reclaimed, and any dropped narration is quoted back verbatim —
+ * losing a line silently would be the one thing an editor could not forgive.
+ */
+function describeOptimize(r: OptimizeReport): string {
+  if (r.noop) return `${r.noop} Nothing to cut.`
+
+  const lines: string[] = []
+  if (r.met) {
+    lines.push(`Target met: ${t(r.start)} → ${t(r.end)}, inside the ${r.target}s target.`)
+  } else {
+    lines.push(
+      `Now ${t(r.end)} after reclaiming ${t(r.start - r.end)}, still ${t(r.end - r.target)} over the ${r.target}s target.`,
+    )
+  }
+  if (r.steps.length) lines.push(...r.steps.map((s) => `  · ${s.label}`))
+
+  if (r.dropped.length) {
+    lines.push(`Narration dropped (${r.dropped.length}), say so if any should come back:`)
+    lines.push(...r.dropped.map((d) => `  − "${d.text.slice(0, 70)}" (${t(d.seconds)})`))
+  }
+
+  if (!r.met) {
+    if (r.candidates.length) {
+      lines.push('Longest lines still in the edit:')
+      lines.push(...r.candidates.map((c) => `  ${ts(c.start)}-${ts(c.end)} (${t(c.seconds)}) "${c.text.slice(0, 55)}"`))
+      lines.push('Pass the ranges you can spare to remove_ranges.')
+    } else {
+      lines.push('Nothing further can be cut without emptying the timeline.')
+    }
+  }
+  return lines.join('\n')
 }

@@ -1,32 +1,69 @@
 import { useEffect, useRef } from 'react'
 import { useActivity, type ActivityEntry } from '../store/activity'
 
+/**
+ * The agent's work, in the order it happened.
+ *
+ * Each row leads with what the call achieved in plain English and keeps the
+ * tool name and arguments underneath in mono. Someone watching a demo can
+ * follow the reasoning without knowing the tool surface; someone who wants the
+ * evidence can read the exact call that produced the line.
+ */
+
+function Glyph({ e }: { e: ActivityEntry }) {
+  if (e.status === 'running') return <span className="w-3 shrink-0 grid place-items-center"><span className="w-1.5 h-1.5 rounded-full bg-reel-400 pulse-dot" /></span>
+  if (e.status === 'error') return <span className="w-3 shrink-0 text-warn-400 text-[11px] leading-none">✗</span>
+  if (e.kind === 'user') return <span className="w-3 shrink-0 text-warn-400 text-[11px] leading-none">◆</span>
+  return <span className="w-3 shrink-0 text-signal-400 text-[11px] leading-none">✓</span>
+}
+
 function Row({ e }: { e: ActivityEntry }) {
-  const isUser = e.kind === 'user'
+  // Phases are the optimizer narrating its own passes: subordinate to the tool
+  // call that started them, so they sit indented and carry no mono line.
+  if (e.kind === 'phase') {
+    return (
+      <li className="pl-8 pr-3 py-1 flex items-start gap-2">
+        <span className="text-signal-400 text-[11px] leading-[1.35] shrink-0">✓</span>
+        <span className="text-[11.5px] leading-[1.35] text-mist-300">{e.label}</span>
+      </li>
+    )
+  }
+
+  if (e.kind === 'user') {
+    return (
+      <li className="px-3 py-1.5 border-b border-ink-850/70 last:border-0 bg-warn-400/[0.06]">
+        <div className="flex items-start gap-2">
+          <Glyph e={e} />
+          <span className="text-[12px] leading-snug text-warn-400">
+            You {e.result ?? 'made an edit'}
+          </span>
+        </div>
+      </li>
+    )
+  }
+
+  const headline = e.headline ?? (e.status === 'running' ? `${e.label}…` : e.label)
+  // The raw result only earns a line when the headline did not already say it.
+  const showResult = e.status === 'error' || (!e.headline && !!e.result)
+
   return (
     <li className="px-3 py-1.5 border-b border-ink-850/70 last:border-0">
-      <div className="flex items-center gap-2">
-        <span
-          className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-            e.status === 'running' ? 'bg-reel-400 pulse-dot'
-            : e.status === 'error' ? 'bg-warn-400'
-            : isUser ? 'bg-warn-400' : 'bg-signal-400'
-          }`}
-        />
-        <span className={`font-mono text-[11.5px] shrink-0 ${isUser ? 'text-warn-400' : 'text-mist-200'}`}>
-          {e.label}
-        </span>
-        {e.args && <span className="font-mono text-[10.5px] text-mist-400/70 truncate">{e.args}</span>}
+      <div className="flex items-start gap-2">
+        <Glyph e={e} />
+        <div className="min-w-0 flex-1">
+          <p className={`text-[12px] leading-snug break-words ${e.status === 'error' ? 'text-warn-400' : 'text-mist-200'}`}>
+            {headline}
+          </p>
+          <p className="mt-0.5 font-mono text-[10px] text-mist-400/60 truncate">
+            {e.label}{e.args ? ` · ${e.args}` : ''}
+          </p>
+          {showResult && (
+            <p className={`mt-0.5 text-[11px] leading-snug break-words line-clamp-3 ${e.status === 'error' ? 'text-warn-400/90' : 'text-mist-400'}`}>
+              {e.result}
+            </p>
+          )}
+        </div>
       </div>
-      {e.result && (
-        <p
-          className={`pl-3.5 mt-0.5 text-[11px] leading-snug break-words line-clamp-3 ${
-            e.status === 'error' ? 'text-warn-400' : 'text-mist-400'
-          }`}
-        >
-          {e.result}
-        </p>
-      )}
     </li>
   )
 }
@@ -60,10 +97,10 @@ export default function ActivityPanel() {
       <div ref={scroller} className="flex-1 min-h-0 overflow-y-auto">
         {entries.length === 0 ? (
           <div className="px-4 py-6 text-[11.5px] leading-relaxed text-mist-400/70">
-            Every tool your agent calls shows up here as it happens.
+            Everything your agent does shows up here as it happens, in plain English.
             <br /><br />
-            Try: <span className="text-mist-200">“Cut the dead air and the filler words, then put the terminal
-            recording where I talk about the terminal.”</span>
+            Try: <span className="text-mist-200">“Cut this down to 60 seconds and put the terminal recording
+            where I talk about the terminal.”</span>
           </div>
         ) : (
           <ul>{entries.map((e) => <Row key={e.id} e={e} />)}</ul>

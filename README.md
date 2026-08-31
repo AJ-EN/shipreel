@@ -41,8 +41,10 @@ The agent is a guest in the editor, not the other way round.
 - **Editing by meaning, not by timecode.** "Show the terminal when I mention the
   terminal" is `search_transcript` → `place_clip`. The agent works from what was
   *said*, which is not a thing you can express in a timeline UI.
-- **Cutting to a hard runtime.** The agent loops: check runtime → tighten pauses →
-  check → drop a sentence → check, until the video is under budget. That is a
+- **Cutting to a hard runtime.** Set a target and `optimize_duration` escalates
+  through passes that cost the viewer progressively more — dead air at tightening
+  floors, then filler words, then whole sentences, stopping the moment it fits and
+  naming every line it dropped. 108.7s → 60.0s in one call. That is a
   constraint-satisfaction problem humans are bad at and agents are good at.
 - **Shared, inspectable state.** Drag a clip and the agent sees your change on its
   next `get_project_state`, reported as *"since your last check the person moved a
@@ -56,6 +58,7 @@ supports](https://developers.openai.com/codex/webmcp).
 
 | Tool | What it does |
 | --- | --- |
+| `optimize_duration` | **The main workflow.** Cut to a target runtime, escalating pass by pass until it fits |
 | `get_project_state` | Runtime, every clip, active zooms, and what the person changed by hand |
 | `search_transcript` | Find where something was said; returns timeline ranges |
 | `find_silences` | Detect dead air via RMS analysis of the decoded audio |
@@ -68,20 +71,32 @@ supports](https://developers.openai.com/codex/webmcp).
 | `remove_clip` | Take a clip off the timeline |
 | `preview_at` | Move the playhead so the person looks where you mean |
 | `export_video` | Render in-tab and save the file |
+| `get_export_status` | Poll a render's progress; rendering outlives the call that starts it |
 
-**Dynamic registration.** At boot the agent sees 6 tools. Once footage is on the
-video track, the clip-editing tools register and it sees 12 — verified in Chrome:
+**Dynamic registration.** At boot the agent sees 7 tools. Once footage is on the
+video track, the clip-editing tools register and it sees 14 — verified in Chrome:
 
 ```
-registeredAtBoot:        find_silences, get_project_state, place_clip,
-                         preview_at, remove_ranges, search_transcript
-afterPlacingFootage:     + add_zoom, export_video, move_clip, remove_clip,
-                           set_clip_speed, trim_clip
+registeredAtBoot:        find_silences, get_project_state, optimize_duration,
+                         place_clip, preview_at, remove_ranges, search_transcript
+afterPlacingFootage:     + add_zoom, export_video, get_export_status, move_clip,
+                           remove_clip, set_clip_speed, trim_clip
 ```
 
 `preview_at` is the tool that best explains WebMCP: it changes nothing about the
-edit and exists only to move *your* eyes to what the agent is talking about. It
+edit and exists only to move *your* eyes to what the agent is talking about — the
+preview rings and captions itself so the jump reads as the agent's decision. It
 would be meaningless over a backend protocol.
+
+**One code path.** The Optimize button and `optimize_duration` call the same
+module and get the same report back, so a person and an agent can pick up after
+each other mid-edit. There is no parallel agent path anywhere in the app.
+
+**Narrated, not logged.** The Agent Activity panel leads with what each call
+achieved in plain English — *"Removed 26.4s of dead air"*, *"Dropped 4 lines of
+narration — 20.3s"* — and keeps the tool name and arguments underneath as
+evidence. Your own edits land in the same feed, so collaboration reads as one
+shared history.
 
 ### Tool design
 

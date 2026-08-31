@@ -113,18 +113,69 @@ const TASKS = [
     `,
   },
   {
-    name: 'Cut the video to under 60 seconds',
+    name: 'Optimize to 60s reaches the target in one call',
     run: `
-      const { T, rx, dur } = window.__ev;
-      let out = await T.optimize_duration.execute({ target_seconds: 60 });
-      // optimize_duration reclaims pauses, then hands back sentences to drop
-      for (let i = 0; i < 6 && dur() > 60; i++) {
-        const cand = out.match(/(\\d+\\.\\d+)s-(\\d+\\.\\d+)s \\(/);
-        if (!cand) break;
-        await T.remove_ranges.execute({ ranges: [{ start:+cand[1], end:+cand[2] }] });
-        out = await T.optimize_duration.execute({ target_seconds: 60 });
-      }
-      return { pass: dur() <= 60, detail: 'final runtime ' + dur().toFixed(1) + 's' };
+      const { T, dur } = window.__ev;
+      const before = dur();
+      const out = await T.optimize_duration.execute({ target_seconds: 60 });
+      return {
+        pass: dur() <= 60 && /^Target met/.test(out),
+        detail: before.toFixed(1) + 's → ' + dur().toFixed(1) + 's · ' + out.slice(0, 70).split(String.fromCharCode(10)).join(' '),
+      };
+    `,
+  },
+  {
+    name: 'Optimizing narrates each pass it ran',
+    run: `
+      const { T } = window.__ev;
+      const A = window.shipreel.stores.activity.getState();
+      const phases = A.entries.filter(e => e.kind === 'phase').map(e => e.label);
+      const call = [...A.entries].reverse().find(e => e.label === 'optimize_duration');
+      const dropped = phases.some(p => /Dropped \\d+ line/.test(p));
+      return {
+        pass: phases.length >= 2 && /Target met/.test(phases[phases.length - 1]) && !!call?.headline,
+        detail: phases.length + ' passes logged' + (dropped ? ' (incl. narration drops)' : '') + ' · headline: "' + call?.headline + '"',
+      };
+    `,
+  },
+  {
+    name: 'keep_narration stops before dropping lines',
+    run: `
+      const { T, dur } = window.__ev;
+      // Ask for something unreachable without cutting speech.
+      const out = await T.optimize_duration.execute({ target_seconds: 5, keep_narration: true });
+      const held = dur() > 5;
+      return {
+        pass: held && /Longest lines still in the edit/.test(out) && !/Narration dropped/.test(out),
+        detail: 'held at ' + dur().toFixed(1) + 's and handed back candidates instead',
+      };
+    `,
+  },
+  {
+    name: 'Every tool call is narrated in plain English',
+    run: `
+      const A = window.shipreel.stores.activity.getState();
+      const calls = A.entries.filter(e => e.kind === 'tool' && e.status === 'ok');
+      const missing = calls.filter(e => !e.headline).map(e => e.label);
+      const sample = calls.slice(-3).map(e => e.headline);
+      return {
+        pass: missing.length === 0 && calls.length >= 8,
+        detail: calls.length + ' calls, all narrated. Latest: ' + JSON.stringify(sample),
+      };
+    `,
+  },
+  {
+    name: 'preview_at marks the frame as the agent’s doing',
+    run: `
+      const { T } = window.__ev;
+      const S = window.shipreel.stores.spotlight;
+      const before = S.getState().token;
+      const out = await T.preview_at.execute({ time: 12 });
+      const s = S.getState();
+      return {
+        pass: s.token === before + 1 && Math.abs(s.at - 12) < 0.2 && !!s.note,
+        detail: 'spotlight at ' + s.at.toFixed(1) + 's — "' + s.note + '"',
+      };
     `,
   },
   {
@@ -164,7 +215,9 @@ const TASKS = [
         status = await T.get_export_status.execute({});
         if (/^Render complete/.test(status) || /failed/.test(status)) break;
       }
-      return { pass: /^Render complete/.test(status), detail: status.slice(0, 120) };
+      const e = window.shipreel.stores.exportState.getState();
+      const detailed = e.phase === 'ready' && e.videoSeconds > 0 && !!e.format && e.sizeKB > 0;
+      return { pass: /^Render complete/.test(status) && detailed, detail: status.slice(0, 140) };
     `,
   },
 ]
