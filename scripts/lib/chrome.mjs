@@ -75,12 +75,23 @@ export async function launchChrome(url, { port = 9333 + (process.pid % 500) } = 
     return r.result?.result?.value
   }
 
-  /** Resolve once the app has booted and registered its tools. */
-  const waitForApp = () => evaluate(`
-    for (let i = 0; i < 120 && !window.shipreel; i++) await new Promise(r => setTimeout(r, 250));
-    if (!window.shipreel) throw new Error('app did not boot');
-    return true;
-  `)
+  /**
+   * Resolve once the app has booted and registered its tools.
+   *
+   * Polls from Node rather than looping inside the page: on a remote URL the
+   * navigation can commit while an in-page loop is running, wiping the globals
+   * it was waiting for and reporting a false success.
+   */
+  const waitForApp = async ({ timeoutMs = 90_000 } = {}) => {
+    const deadline = Date.now() + timeoutMs
+    while (Date.now() < deadline) {
+      try {
+        if (await evaluate('return !!(window.shipreel && window.shipreel.stores)')) return true
+      } catch { /* execution context swapped mid-navigation; try again */ }
+      await sleep(500)
+    }
+    throw new Error(`app did not boot within ${timeoutMs / 1000}s`)
+  }
 
   return { evaluate, waitForApp, close, reload: () => send('Page.reload', { ignoreCache: false }) }
 }
