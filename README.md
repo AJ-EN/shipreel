@@ -35,9 +35,10 @@ The agent is a guest in the editor, not the other way round.
 
 ## What people and agents can do together that was hard before
 
-- **43 cuts in one gesture.** `remove_ranges` takes an *array*. The agent detects
-  every silence and removes them in a single call, rippling all tracks together.
-  Doing that by hand is 40+ precise drag operations; here it is one tool call.
+- **23 cuts in one gesture.** `remove_ranges` takes an *array*. In the bundled
+  project the agent detects every silence — 23 of them, 28.3s in total — and
+  removes them in a single call, rippling all tracks together. By hand that is
+  23 precise selections; here it is one tool call.
 - **Editing by meaning, not by timecode.** "Show the terminal when I mention the
   terminal" is `search_transcript` → `place_clip`. The agent works from what was
   *said*, which is not a thing you can express in a timeline UI.
