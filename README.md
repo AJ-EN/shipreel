@@ -17,8 +17,8 @@ watch the timeline change and take over whenever you want.
 Most agent integrations can be a backend MCP server. This one cannot.
 
 The media is a set of `Blob`s in page memory. Decoding, compositing, and encoding
-run on `WebCodecs`, `Canvas`, `MediaRecorder`, and the `WebAudio` graph — inside the
-tab, against the person's own files. **There is no server to expose.** A remote MCP
+run on `HTMLVideoElement`, `Canvas`, the `WebAudio` graph, and `MediaRecorder` —
+inside the tab, against the person's own files. **There is no server to expose.** A remote MCP
 server has nothing to connect to: it cannot see the timeline, cannot read the
 decoded audio, and cannot render a frame.
 
