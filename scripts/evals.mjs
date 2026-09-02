@@ -201,6 +201,32 @@ const TASKS = [
     `,
   },
   {
+    name: 'The person can bring their own footage',
+    run: `
+      const { T, state } = window.__ev;
+      // Feed a file through the real file input, the way a person would.
+      const blob = await fetch('/demo/dashboard.mp4').then(r => r.blob());
+      const file = new File([blob], 'My Login Flow.mp4', { type: 'video/mp4' });
+      const input = document.querySelector('input[type=file]');
+      const dt = new DataTransfer(); dt.items.add(file);
+      input.files = dt.files;
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      for (let i = 0; i < 60 && !state().assets.some(a => a.id === 'my-login-flow'); i++) {
+        await new Promise(r => setTimeout(r, 250));
+      }
+      const asset = state().assets.find(a => a.id === 'my-login-flow');
+      const told = await T.get_project_state.execute({});
+      const placed = await T.place_clip.execute({ media: 'my login flow', at: 5, source_start: 0, source_end: 3 });
+      // A tainted canvas would break export for imported media.
+      let untainted = true; try { window.shipreel.player.canvas.toDataURL() } catch (e) { untainted = false }
+      return {
+        pass: !!asset && asset.src.indexOf('blob:') === 0 && /added footage/.test(told)
+              && /Placed my-login-flow/.test(placed) && untainted,
+        detail: 'imported as "' + (asset||{}).id + '" (' + ((asset||{}).duration||0).toFixed(1) + 's), stays a blob, agent told, placed by name, canvas untainted',
+      };
+    `,
+  },
+  {
     name: 'Export renders and reports completion',
     run: `
       const { T, dur } = window.__ev;

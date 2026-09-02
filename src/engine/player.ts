@@ -104,6 +104,11 @@ export class Player {
     this.gain.gain.value = muted ? 0 : 1
   }
 
+  /** Register footage added after boot, so clips referencing it can paint. */
+  addVideo(id: string, el: HTMLVideoElement) {
+    this.media.videos.set(id, el)
+  }
+
   // ------------------------------------------------------------------ draw --
   private paintBackdrop() {
     const g = this.ctx.createLinearGradient(0, 0, 0, FRAME_H)

@@ -214,14 +214,22 @@ the demo works instantly:
 **The silence detection is not faked.** `find_silences` runs windowed RMS analysis
 over the decoded audio at runtime and finds the gaps for itself.
 
+**Bring your own footage.** Drop screen recordings onto the timeline, or use
+`+ Footage`. Each file becomes an object URL and joins the project — it never
+uploads, and it takes exactly the path the bundled clips take, so every tool
+treats it identically. The id comes from the filename, so `login-flow.mov`
+lets you say *"put the login flow clip where I demo signing in."* The agent is
+told about the import on its next `get_project_state`.
+
 ## Limitations
 
 - Export renders in real time (a 70s video takes ~70s), because it captures the
   live compositor. A `WebCodecs` encode path would be faster and is the obvious
   next step.
-- Transcription is not yet computed in-browser; the bundled project ships a
-  pre-computed transcript. Recording your own voiceover would need Whisper via
-  `transformers.js` or a transcription API.
+- You can drop in your own screen recordings, but not your own voiceover:
+  transcription is not yet computed in-browser, and the transcript is what the
+  agent edits against. The bundled project ships a pre-computed one. Recording
+  your own narration would need Whisper via `transformers.js` or an API.
 - One video track and one audio track. No transitions beyond hard cuts.
 - Needs a WebMCP-capable browser for agent mode; manual editing works anywhere.
 

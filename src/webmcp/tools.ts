@@ -622,14 +622,14 @@ const HEADLINES: Record<string, (input: any, result: string) => string> = {
 
   preview_at: (_i, r) => {
     const at = num(r, /moved to ([\d.]+s)/)
-    const showing = num(r, /Showing (\w+)/)
+    const showing = num(r, /Showing ([\w-]+)/)
     if (!at) return first(r)
     return `Previewing ${at} for you${showing ? ` — showing ${showing}` : ''}`
   },
 
   trim_clip: (_i, r) => {
     const span = num(r, /occupies ([\d.]+s)/)
-    const media = num(r, /of (\w+) and/)
+    const media = num(r, /of ([\w-]+) and/)
     return span ? `Trimmed the ${media ?? ''} clip to ${span}`.replace('  ', ' ') : first(r)
   },
 

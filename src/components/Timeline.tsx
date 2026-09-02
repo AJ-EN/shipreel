@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useProject } from '../store/project'
+import { loadVideoFile } from '../engine/media'
 import { clipSpan, clipEnd } from '../engine/ripple'
 import type { Player } from '../engine/player'
 import type { Clip } from '../types'
@@ -11,6 +12,10 @@ export default function Timeline({ player }: { player: Player }) {
   const wrap = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(900)
   const [drag, setDrag] = useState<{ id: string; dx: number } | null>(null)
+  const [importing, setImporting] = useState(false)
+  const [dropping, setDropping] = useState(false)
+  const [importError, setImportError] = useState<string | null>(null)
+  const filePicker = useRef<HTMLInputElement>(null)
 
   const clips = useProject((s) => s.clips)
   const zooms = useProject((s) => s.zooms)
@@ -60,6 +65,30 @@ export default function Timeline({ player }: { player: Player }) {
     return () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up) }
   }, [drag, pps])
 
+  /**
+   * Bring in the person's own screen recordings. Nothing uploads — each file
+   * becomes an object URL and joins `assets`, so the agent sees it on its next
+   * get_project_state and can place it by name like any bundled clip.
+   */
+  const addFootage = async (files: File[]) => {
+    const videos = files.filter((f) => f.size > 0)
+    if (!videos.length) return
+    setImporting(true)
+    setImportError(null)
+    try {
+      for (const file of videos) {
+        const taken = useProject.getState().assets.map((a) => a.id)
+        const { asset, el } = await loadVideoFile(file, taken)
+        player.addVideo(asset.id, el)
+        useProject.getState().addAsset(asset, 'user')
+      }
+    } catch (e) {
+      setImportError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setImporting(false)
+    }
+  }
+
   const renderClip = (c: Clip) => {
     const offset = drag?.id === c.id ? drag.dx : 0
     const left = x(c.start) + offset
@@ -98,17 +127,41 @@ export default function Timeline({ player }: { player: Player }) {
     <div className="flex flex-col">
       <div className="flex items-baseline justify-between px-1 pb-2">
         <h2 className="text-[11px] uppercase tracking-[0.14em] text-mist-400 font-semibold">Timeline</h2>
-        <span className="text-[11px] font-mono text-mist-400 tabular-nums">
-          {duration.toFixed(1)}s · {clips.filter((c) => c.track === 'video').length} video · {clips.filter((c) => c.track === 'audio').length} audio
-        </span>
+        <div className="flex items-center gap-2.5">
+          <span className="text-[11px] font-mono text-mist-400 tabular-nums">
+            {duration.toFixed(1)}s · {clips.filter((c) => c.track === 'video').length} video · {clips.filter((c) => c.track === 'audio').length} audio
+          </span>
+          <button
+            onClick={() => filePicker.current?.click()}
+            disabled={importing}
+            title="Add your own screen recordings — they stay on your machine"
+            className="px-2 h-6 rounded-md text-[11px] bg-ink-800 hover:bg-ink-700 ring-1 ring-ink-600 text-mist-200 disabled:opacity-40 transition-colors"
+          >
+            {importing ? 'Adding…' : '+ Footage'}
+          </button>
+          <input
+            ref={filePicker} type="file" accept="video/*" multiple hidden
+            onChange={(e) => { void addFootage([...(e.target.files ?? [])]); e.target.value = '' }}
+          />
+        </div>
       </div>
 
       <div
         ref={wrap}
         onPointerDown={(e) => seek(e.clientX)}
-        className="relative bg-ink-900 rounded-xl ring-1 ring-ink-700 cursor-text overflow-hidden"
+        onDragOver={(e) => { e.preventDefault(); setDropping(true) }}
+        onDragLeave={() => setDropping(false)}
+        onDrop={(e) => { e.preventDefault(); setDropping(false); void addFootage([...e.dataTransfer.files]) }}
+        className={`relative bg-ink-900 rounded-xl ring-1 cursor-text overflow-hidden ${
+          dropping ? 'ring-2 ring-reel-400/70' : 'ring-ink-700'
+        }`}
         style={{ height: TRACK_H * 2 + 46 }}
       >
+        {dropping && (
+          <div className="absolute inset-0 z-20 grid place-items-center bg-ink-950/70 pointer-events-none">
+            <span className="text-[12px] text-reel-400">Drop your screen recordings here</span>
+          </div>
+        )}
         {/* ruler */}
         <div className="relative h-[22px] border-b border-ink-800">
           {ticks.map((s) => (
@@ -146,8 +199,12 @@ export default function Timeline({ player }: { player: Player }) {
         </div>
       </div>
 
+      {importError && (
+        <p className="px-1 pt-2 text-[11px] text-warn-400">{importError}</p>
+      )}
       <p className="px-1 pt-2 text-[11px] text-mist-400/70">
-        Drag a video clip to reposition it — the agent sees your change on its next <code className="text-mist-400">get_project_state</code>.
+        Drop in your own screen recordings, or drag a clip to reposition it — the agent sees either on its
+        next <code className="text-mist-400">get_project_state</code>. Nothing uploads.
       </p>
     </div>
   )

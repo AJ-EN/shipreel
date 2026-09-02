@@ -18,6 +18,7 @@ interface State {
   selectedClipId: string | null
 
   load: (assets: MediaAsset[], transcript: Transcript, silences: Range[]) => void
+  addAsset: (asset: MediaAsset, by: 'user' | 'agent') => void
   note: (by: 'user' | 'agent', description: string) => void
   drainUserEdits: () => string[]
 
@@ -62,6 +63,11 @@ export const useProject = create<State>((set, get) => ({
       readCursor: 0,
       playhead: 0,
     })
+  },
+
+  addAsset: (asset, by) => {
+    set((s) => ({ assets: [...s.assets, asset] }))
+    get().note(by, `added footage "${asset.id}" (${asset.duration.toFixed(1)}s)`)
   },
 
   note: (by, description) => {
