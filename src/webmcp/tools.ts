@@ -104,7 +104,7 @@ export function buildToolset(player: Player) {
       'Read the current edit: total runtime, every clip with its timeline position and source range, active zooms, and the media available to place. Also reports any changes the person made by hand since you last checked. Call this first, after the person edits something, and to check runtime when cutting to a target length.',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
     // Reading state is harmless, so the agent should never need to ask permission.
-    annotations: { readOnlyHint: true, untrustedContentHint: true },
+    annotations: { readOnlyHint: true, openWorldHint: false, untrustedContentHint: true },
     execute: () => {
       const s = useProject.getState()
       const video = s.clipsOn('video')
@@ -143,7 +143,7 @@ export function buildToolset(player: Player) {
       additionalProperties: false,
     },
     // Transcript text comes from a recording the person supplied: untrusted.
-    annotations: { readOnlyHint: true, untrustedContentHint: true },
+    annotations: { readOnlyHint: true, openWorldHint: false, untrustedContentHint: true },
     execute: ({ query }: { query: string }) => {
       const s = useProject.getState()
       if (!s.transcript) return 'No transcript is loaded yet, so the voiceover cannot be searched.'
@@ -198,7 +198,7 @@ export function buildToolset(player: Player) {
       },
       additionalProperties: false,
     },
-    annotations: { readOnlyHint: true },
+    annotations: { readOnlyHint: true, openWorldHint: false },
     execute: ({ min_seconds }: { min_seconds?: number }) => {
       const s = useProject.getState()
       const floor = min_seconds ?? 0.4
@@ -244,6 +244,7 @@ export function buildToolset(player: Player) {
       required: ['target_seconds'],
       additionalProperties: false,
     },
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
     execute: async ({ target_seconds, keep_narration }: { target_seconds: number; keep_narration?: boolean }) =>
       cap(describeOptimize(await optimizeToTarget(target_seconds, { keepNarration: keep_narration === true }))),
   }, base)
@@ -272,6 +273,7 @@ export function buildToolset(player: Player) {
       required: ['ranges'],
       additionalProperties: false,
     },
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
     execute: ({ ranges }: { ranges: Range[] }) => {
       if (!Array.isArray(ranges) || !ranges.length) {
         return 'Provide at least one range. Call find_silences or search_transcript to get ranges worth cutting.'
@@ -310,6 +312,7 @@ export function buildToolset(player: Player) {
       required: ['media', 'at'],
       additionalProperties: false,
     },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     execute: ({ media, at, source_start, source_end }: { media: string; at: number; source_start?: number; source_end?: number }) => {
       const asset = findMedia(media)
       if (typeof asset === 'string') return asset
@@ -333,7 +336,7 @@ export function buildToolset(player: Player) {
       additionalProperties: false,
     },
     // Purely a view change — safe to call freely.
-    annotations: { readOnlyHint: true },
+    annotations: { readOnlyHint: true, openWorldHint: false },
     execute: async ({ time }: { time: number }) => {
       const s = useProject.getState()
       const dur = s.duration()
@@ -365,6 +368,7 @@ export function buildToolset(player: Player) {
           required: ['clip_id', 'source_start', 'source_end'],
           additionalProperties: false,
         },
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         execute: ({ clip_id, source_start, source_end }: { clip_id: string; source_start: number; source_end: number }) => {
           const clip = findClip(clip_id)
           if (typeof clip === 'string') return clip
@@ -387,6 +391,7 @@ export function buildToolset(player: Player) {
           required: ['clip_id', 'to'],
           additionalProperties: false,
         },
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         execute: ({ clip_id, to }: { clip_id: string; to: number }) => {
           const clip = findClip(clip_id)
           if (typeof clip === 'string') return clip
@@ -407,6 +412,7 @@ export function buildToolset(player: Player) {
           required: ['clip_id', 'speed'],
           additionalProperties: false,
         },
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         execute: ({ clip_id, speed }: { clip_id: string; speed: number }) => {
           const clip = findClip(clip_id)
           if (typeof clip === 'string') return clip
@@ -437,6 +443,7 @@ export function buildToolset(player: Player) {
           required: ['start', 'end', 'x', 'y', 'scale'],
           additionalProperties: false,
         },
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
         execute: ({ start, end, x, y, scale }: { start: number; end: number; x: number; y: number; scale: number }) => {
           if (end <= start) return `end (${end}) must be greater than start (${start}).`
           if (scale <= 1) return 'Scale must be greater than 1 to zoom in. Try 1.8.'
@@ -459,6 +466,7 @@ export function buildToolset(player: Player) {
           required: ['clip_id'],
           additionalProperties: false,
         },
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
         execute: ({ clip_id }: { clip_id: string }) => {
           const clip = findClip(clip_id)
           if (typeof clip === 'string') return clip
@@ -472,7 +480,7 @@ export function buildToolset(player: Player) {
         description:
           'Check how the current render is going. Reports whether it is idle, rendering (with progress), finished, or failed. Poll this after export_video rather than assuming the file is ready; a render takes roughly as long as the video.',
         inputSchema: { type: 'object', properties: {}, additionalProperties: false },
-        annotations: { readOnlyHint: true },
+        annotations: { readOnlyHint: true, openWorldHint: false },
         execute: () => {
           const e = useExport.getState()
           switch (e.phase) {
@@ -497,6 +505,7 @@ export function buildToolset(player: Player) {
           properties: { filename: { type: 'string', description: 'Name for the saved file, without an extension.' } },
           additionalProperties: false,
         },
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
         execute: ({ filename }: { filename?: string }) => {
           const dur = useProject.getState().duration()
           if (dur < 0.5) return 'There is nothing on the timeline to export yet.'
